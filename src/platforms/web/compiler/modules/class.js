@@ -7,6 +7,7 @@ import {
   baseWarn
 } from 'compiler/helpers'
 
+// 处理静态，绑定class属性
 function transformNode (el: ASTElement, options: CompilerOptions) {
   const warn = options.warn || baseWarn
   const staticClass = getAndRemoveAttr(el, 'class')
@@ -24,6 +25,7 @@ function transformNode (el: ASTElement, options: CompilerOptions) {
   if (staticClass) {
     el.staticClass = JSON.stringify(staticClass)
   }
+  // 处理 :class 表达式
   const classBinding = getBindingAttr(el, 'class', false /* getStatic */)
   if (classBinding) {
     el.classBinding = classBinding

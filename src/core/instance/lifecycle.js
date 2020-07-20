@@ -18,6 +18,7 @@ import {
   validateProp
 } from '../util/index'
 
+// 全局唯一，当前活动的实例
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
@@ -25,7 +26,7 @@ export function initLifecycle (vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
-  // 确定parent，关联vm和parent
+  // 确定parent，关联当前vm和parent
   let parent = options.parent
   if (parent && !options.abstract) {
     // 寻找上一个非抽象节点（内部组件，比如template，keepalive都属于抽象组件）作为父节点
@@ -66,14 +67,17 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const prevActiveInstance = activeInstance
     // 设置当前为激活实例
     activeInstance = vm
-    // 替换之前的vnode
+    // 替换之前的vnode，在这里旧节点已经被替换了，剩下的就是根据旧节点和新节点的差异，更新旧节点的vm和dom
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
       // 第一次渲染没有之前的vnode
+      // 第一次patch前￥el是空的，有可能是预设的el，比如new vue（）先挂载到一个dom
       // patch之后生成新的el，完成视图更新
+      // 非根节点（系统自动挂载的节点）在patch后完成挂载，而根节点比如 new vue（）是主动挂载 
+      // _parentElm会传递给该vm下的组件vnode在创建自己的vm，代代相传递归到叶子节点，在回来逐一删除
       vm.$el = vm.__patch__(
         vm.$el, vnode, hydrating, false /* removeOnly */,
         vm.$options._parentElm,
@@ -165,6 +169,8 @@ export function mountComponent (
   hydrating?: boolean
 ): Component {
   // 这个是原生dom
+  // 挂载的dom
+  // 组件挂载第一次el的值是空的
   vm.$el = el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
@@ -229,11 +235,17 @@ export function mountComponent (
   return vm
 }
 
+// 更新vnode对应的vm中的旧数据
 export function updateChildComponent (
+  // parentvnode对应的vm
   vm: Component,
+  // vm对应的props
   propsData: ?Object,
+  // vm对应的listener
   listeners: ?Object,
+  // vm对应的vnode
   parentVnode: MountedComponentVNode,
+  // vm的￥slot
   renderChildren: ?Array<VNode>
 ) {
   if (process.env.NODE_ENV !== 'production') {
@@ -276,6 +288,7 @@ export function updateChildComponent (
     }
     toggleObserving(true)
     // keep a copy of raw propsData
+    // vm持有propsdata，也就是用户传入的props的值
     vm.$options.propsData = propsData
   }
 
@@ -288,6 +301,7 @@ export function updateChildComponent (
   // resolve slots + force update if has children
   // 更新子节点
   if (hasChildren) {
+    // 更新slot，强制刷新
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
     vm.$forceUpdate()
   }

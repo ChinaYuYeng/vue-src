@@ -37,11 +37,13 @@ export type CodegenResult = {
   staticRenderFns: Array<string>
 };
 
+// 根节点调用这个方法
 export function generate (
   ast: ASTElement | void,
   options: CompilerOptions
 ): CodegenResult {
   const state = new CodegenState(options)
+  // 根节点一定是tag
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
     render: `with(this){return ${code}}`,
@@ -49,6 +51,7 @@ export function generate (
   }
 }
 
+// 返回ast生成的render代码字符串
 export function genElement (el: ASTElement, state: CodegenState): string {
   if (el.staticRoot && !el.staticProcessed) {
     return genStatic(el, state)
@@ -66,10 +69,13 @@ export function genElement (el: ASTElement, state: CodegenState): string {
     // component or element
     let code
     if (el.component) {
+      // component组件 is属性
       code = genComponent(el.component, el, state)
     } else {
+      // 生成vnode的data数据
       const data = el.plain ? undefined : genData(el, state)
 
+      // 生成vnode的children
       const children = el.inlineTemplate ? null : genChildren(el, state, true)
       code = `_c('${el.tag}'${
         data ? `,${data}` : '' // data
@@ -78,6 +84,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
       })`
     }
     // module transforms
+    // 没找到相应的代码，不知道是干嘛的
     for (let i = 0; i < state.transforms.length; i++) {
       code = state.transforms[i](el, code)
     }
@@ -86,6 +93,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 }
 
 // hoist static sub-trees out
+// 生成静态渲染方法字符串
 function genStatic (el: ASTElement, state: CodegenState): string {
   el.staticProcessed = true
   state.staticRenderFns.push(`with(this){return ${genElement(el, state)}}`)
@@ -97,6 +105,7 @@ function genStatic (el: ASTElement, state: CodegenState): string {
 }
 
 // v-once
+// 这个指令是只渲染一次，也就是手动标记节点是否静态
 function genOnce (el: ASTElement, state: CodegenState): string {
   el.onceProcessed = true
   if (el.if && !el.ifProcessed) {
@@ -164,6 +173,7 @@ function genIfConditions (
   }
 }
 
+// v-for的字符串代码
 export function genFor (
   el: any,
   state: CodegenState,
@@ -196,6 +206,7 @@ export function genFor (
     '})'
 }
 
+// 生成组件data
 export function genData (el: ASTElement, state: CodegenState): string {
   let data = '{'
 
@@ -213,45 +224,56 @@ export function genData (el: ASTElement, state: CodegenState): string {
     data += `ref:${el.ref},`
   }
   if (el.refInFor) {
+    // 标识是否多个ref，同名ref会返回数组
     data += `refInFor:true,`
   }
   // pre
   if (el.pre) {
+    // 是否忽略编译
     data += `pre:true,`
   }
   // record original tag name for components using "is" attribute
   if (el.component) {
+    // component组件的is属性值
     data += `tag:"${el.tag}",`
   }
   // module data generation functions
+  // 给data添加staticclass，class和staticstyle，style
   for (let i = 0; i < state.dataGenFns.length; i++) {
     data += state.dataGenFns[i](el)
   }
   // attributes
+  // 添加到attrs（大多属性添加到这里（组件上的属性一定添加到这））
   if (el.attrs) {
     data += `attrs:{${genProps(el.attrs)}},`
   }
   // DOM props
+  // 一些特殊的属性会添加到这（tag一定是dom标签）
   if (el.props) {
     data += `domProps:{${genProps(el.props)}},`
   }
   // event handlers
+  // 添加自定义事件
   if (el.events) {
     data += `${genHandlers(el.events, false, state.warn)},`
   }
+  // 添加原生事件
   if (el.nativeEvents) {
     data += `${genHandlers(el.nativeEvents, true, state.warn)},`
   }
   // slot target
   // only for non-scoped slots
+  // 普通的slot，不带数据
   if (el.slotTarget && !el.slotScope) {
     data += `slot:${el.slotTarget},`
   }
   // scoped slots
+  // 带有slotscope的会在解析的时候生成scopeslots并会赋值到父节点
   if (el.scopedSlots) {
     data += `${genScopedSlots(el.scopedSlots, state)},`
   }
   // component v-model
+  // 自己写的data中没有model，不知道后面会不会处理掉
   if (el.model) {
     data += `model:{value:${
       el.model.value
@@ -262,25 +284,39 @@ export function genData (el: ASTElement, state: CodegenState): string {
     }},`
   }
   // inline-template
+  // 这个自己写的时候也没有
+  /**
+   * data:{
+   *  inlineTemplate:{
+   *    render:function(){}
+   *    staticRender:function(){}
+   *  }
+   * }
+   */
   if (el.inlineTemplate) {
     const inlineTemplate = genInlineTemplate(el, state)
     if (inlineTemplate) {
       data += `${inlineTemplate},`
     }
   }
+  // 结尾，去掉多余的，，加上｝
   data = data.replace(/,$/, '') + '}'
   // v-bind data wrap
+  // 特殊处理
   if (el.wrapData) {
     data = el.wrapData(data)
   }
   // v-on data wrap
+  // 特殊处理
   if (el.wrapListeners) {
     data = el.wrapListeners(data)
   }
   return data
 }
 
+// 生成组件data对象的自定义指令数据
 function genDirectives (el: ASTElement, state: CodegenState): string | void {
+  // 自定义指令（系统指令都被特殊处理了）
   const dirs = el.directives
   if (!dirs) return
   let res = 'directives:['
@@ -297,6 +333,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
     }
     if (needRuntime) {
       hasRuntime = true
+      // 渲染函数中指令数据格式
       res += `{name:"${dir.name}",rawName:"${dir.rawName}"${
         dir.value ? `,value:(${dir.value}),expression:${JSON.stringify(dir.value)}` : ''
       }${
@@ -311,6 +348,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
   }
 }
 
+// 生成内置ats渲染函数代码
 function genInlineTemplate (el: ASTElement, state: CodegenState): ?string {
   const ast = el.children[0]
   if (process.env.NODE_ENV !== 'production' && (
@@ -328,10 +366,12 @@ function genInlineTemplate (el: ASTElement, state: CodegenState): ?string {
   }
 }
 
+// 生成scopedslot，渲染代码
 function genScopedSlots (
   slots: { [key: string]: ASTElement },
   state: CodegenState
 ): string {
+  // _u是把数组转换成对象的形式
   return `scopedSlots:_u([${
     Object.keys(slots).map(key => {
       return genScopedSlot(key, slots[key], state)
@@ -432,6 +472,7 @@ function needsNormalization (el: ASTElement): boolean {
   return el.for !== undefined || el.tag === 'template' || el.tag === 'slot'
 }
 
+// 子节点需要判断type，采用不同生成策略
 function genNode (node: ASTNode, state: CodegenState): string {
   if (node.type === 1) {
     return genElement(node, state)
@@ -483,6 +524,7 @@ function genComponent (
   })`
 }
 
+// 生成data下的dom原生
 function genProps (props: Array<{ name: string, value: any }>): string {
   let res = ''
   for (let i = 0; i < props.length; i++) {

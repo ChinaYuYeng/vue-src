@@ -123,6 +123,7 @@ export function _createElement (
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
       // 创建普通vnode
+      // 普通vnode的elm在patch时创建
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context

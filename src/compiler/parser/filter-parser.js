@@ -2,6 +2,7 @@
 
 const validDivisionCharRE = /[\w).+\-_$\]]/
 
+// 解析v-bind表达式
 export function parseFilters (exp: string): string {
   let inSingle = false
   let inDouble = false

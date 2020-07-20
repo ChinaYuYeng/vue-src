@@ -11,6 +11,7 @@ const genStaticKeysCached = cached(genStaticKeys)
  * Goal of the optimizer: walk the generated template AST tree
  * and detect sub-trees that are purely static, i.e. parts of
  * the DOM that never needs to change.
+ * 静态渲染的目的是找出只需要渲染一次
  *
  * Once we detect these sub-trees, we can:
  *
@@ -23,7 +24,9 @@ export function optimize (root: ?ASTElement, options: CompilerOptions) {
   isStaticKey = genStaticKeysCached(options.staticKeys || '')
   isPlatformReservedTag = options.isReservedTag || no
   // first pass: mark all non-static nodes.
+  // 标记每个节点是否静态
   markStatic(root)
+  // 在每个的基础上标记一块节点是否静态，以便一起渲染
   // second pass: mark static roots.
   markStaticRoots(root, false)
 }
@@ -35,6 +38,7 @@ function genStaticKeys (keys: string): Function {
   )
 }
 
+// 标记静态节点
 function markStatic (node: ASTNode) {
   node.static = isStatic(node)
   if (node.type === 1) {
@@ -97,6 +101,8 @@ function markStaticRoots (node: ASTNode, isInFor: boolean) {
   }
 }
 
+// 文本节点，pre，无动态绑定并且没有v-if并且v-for并且v-esle并且非内建标签并且不是组件，ast每个属性都必须是预先定义的静态属性才是是静态节点（条件很苛刻）
+// 
 function isStatic (node: ASTNode): boolean {
   if (node.type === 2) { // expression
     return false

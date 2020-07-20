@@ -4,6 +4,7 @@ import { inBrowser, isIE9 } from 'core/util/index'
 import { addClass, removeClass } from './class-util'
 import { remove, extend, cached } from 'shared/util'
 
+// 解析transition定义，是使用css样式动画还是钩子动画，返回transition定义
 export function resolveTransition (def?: string | Object): ?Object {
   if (!def) {
     return
@@ -11,6 +12,7 @@ export function resolveTransition (def?: string | Object): ?Object {
   /* istanbul ignore else */
   if (typeof def === 'object') {
     const res = {}
+    // 是否css动画
     if (def.css !== false) {
       extend(res, autoCssTransition(def.name || 'v'))
     }
@@ -21,6 +23,7 @@ export function resolveTransition (def?: string | Object): ?Object {
   }
 }
 
+// 返回transition动画css名定义
 const autoCssTransition: (name: string) => Object = cached(name => {
   return {
     enterClass: `${name}-enter`,

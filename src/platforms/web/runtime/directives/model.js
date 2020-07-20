@@ -19,6 +19,7 @@ if (isIE9) {
   })
 }
 
+// web环境下的v-model指令
 const directive = {
   inserted (el, binding, vnode, oldVnode) {
     if (vnode.tag === 'select') {
@@ -138,6 +139,7 @@ function onCompositionEnd (e) {
   trigger(e.target, 'input')
 }
 
+// 触发事件
 function trigger (el, type) {
   const e = document.createEvent('HTMLEvents')
   e.initEvent(type, true, true)

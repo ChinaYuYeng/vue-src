@@ -12,10 +12,12 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   template: string,
   options: CompilerOptions
 ): CompiledResult {
+  // 这个options是finaloptions
   const ast = parse(template.trim(), options)
   if (options.optimize !== false) {
     optimize(ast, options)
   }
+  // 生成render渲染函数字符串
   const code = generate(ast, options)
   return {
     ast,

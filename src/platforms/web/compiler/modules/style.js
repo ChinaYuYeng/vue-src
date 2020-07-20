@@ -8,6 +8,7 @@ import {
   baseWarn
 } from 'compiler/helpers'
 
+// 处理style属性
 function transformNode (el: ASTElement, options: CompilerOptions) {
   const warn = options.warn || baseWarn
   const staticStyle = getAndRemoveAttr(el, 'style')
@@ -27,6 +28,7 @@ function transformNode (el: ASTElement, options: CompilerOptions) {
     el.staticStyle = JSON.stringify(parseStyleText(staticStyle))
   }
 
+  // 处理:style的样式
   const styleBinding = getBindingAttr(el, 'style', false /* getStatic */)
   if (styleBinding) {
     el.styleBinding = styleBinding

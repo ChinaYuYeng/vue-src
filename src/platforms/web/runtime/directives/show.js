@@ -3,6 +3,7 @@
 import { enter, leave } from '../modules/transition'
 
 // recursively search for possible transition defined inside the component root
+// 递归搜索直到出现普通vnode或者组件vnode带有transition定义
 function locateNode (vnode: VNode): VNodeWithData {
   return vnode.componentInstance && (!vnode.data || !vnode.data.transition)
     ? locateNode(vnode.componentInstance._vnode)
@@ -13,6 +14,7 @@ export default {
   bind (el: any, { value }: VNodeDirective, vnode: VNodeWithData) {
     vnode = locateNode(vnode)
     const transition = vnode.data && vnode.data.transition
+    // 保存原始的display值
     const originalDisplay = el.__vOriginalDisplay =
       el.style.display === 'none' ? '' : el.style.display
     if (value && transition) {

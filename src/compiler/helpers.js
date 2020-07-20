@@ -120,17 +120,21 @@ export function addHandler (
   el.plain = false
 }
 
+// 获取绑定属性值，或者静态属性值
 export function getBindingAttr (
   el: ASTElement,
   name: string,
   getStatic?: boolean
 ): ?string {
+  // 获得绑定值
   const dynamicValue =
     getAndRemoveAttr(el, ':' + name) ||
     getAndRemoveAttr(el, 'v-bind:' + name)
   if (dynamicValue != null) {
+    // bind值需要解析
     return parseFilters(dynamicValue)
   } else if (getStatic !== false) {
+    // 获得属性静态值（非bind值）
     const staticValue = getAndRemoveAttr(el, name)
     if (staticValue != null) {
       return JSON.stringify(staticValue)
@@ -142,6 +146,7 @@ export function getBindingAttr (
 // doesn't get processed by processAttrs.
 // By default it does NOT remove it from the map (attrsMap) because the map is
 // needed during codegen.
+// 获得属性值的同时删除属性，只是从数组中删除
 export function getAndRemoveAttr (
   el: ASTElement,
   name: string,

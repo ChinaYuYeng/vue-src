@@ -14,7 +14,7 @@ function Vue (options) {
   this._init(options)
 }
 
-// 以下都是给原型添加功能
+// 以下都是给vue构造函数原型添加功能
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)

@@ -192,6 +192,7 @@ export function defineReactive (
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // 前后值相同是不会赋值触发dep的
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }

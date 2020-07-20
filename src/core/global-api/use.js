@@ -13,10 +13,12 @@ export function initUse (Vue: GlobalAPI) {
     const args = toArray(arguments, 1)
     args.unshift(this)
     if (typeof plugin.install === 'function') {
+      // install才是安装插件的核心方法
       plugin.install.apply(plugin, args)
     } else if (typeof plugin === 'function') {
       plugin.apply(null, args)
     }
+    // 记录下插件
     installedPlugins.push(plugin)
     return this
   }

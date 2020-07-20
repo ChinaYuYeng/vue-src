@@ -15,7 +15,7 @@ let uid = 0
 // 给原型添加初始化方法
 export function initMixin (Vue: Class<Component>) {
   //vue和vuecomponent实例化都会调用init初始化
-  //init的目的就是生成opations
+  //init的目的就是生成opations，初始化vm的属性
   Vue.prototype._init = function (options?: Object) { 
     const vm: Component = this
     // a uid
@@ -43,7 +43,7 @@ export function initMixin (Vue: Class<Component>) {
     } else {
       // 使用对应的策略合并各个vue选项
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor), //收集构造方法上所有opations，合成最终的opations
+        resolveConstructorOptions(vm.constructor), //收集构造方法上所有opations，合成最终的opations，包含extend方法扩展的opations
         options || {}, //实例化时传入的opations
         vm
       )
@@ -57,7 +57,7 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
-    // 以下都是给vm设置或者初始化属性
+    // 以下都是给vm设置或者初始化属性，差不多就是拿opations做文章
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)

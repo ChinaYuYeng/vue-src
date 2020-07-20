@@ -14,7 +14,9 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// 保存原有的￥mount方法
 const mount = Vue.prototype.$mount
+// 添加编译过程包装下￥mount
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
@@ -31,10 +33,12 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 以下是render函数还未生成
   if (!options.render) {
     let template = options.template
     if (template) {
       if (typeof template === 'string') {
+        // 写在script标签中的模板
         if (template.charAt(0) === '#') {
           template = idToTemplate(template)
           /* istanbul ignore if */
@@ -46,6 +50,7 @@ Vue.prototype.$mount = function (
           }
         }
       } else if (template.nodeType) {
+        // template是dom
         template = template.innerHTML
       } else {
         if (process.env.NODE_ENV !== 'production') {
@@ -54,6 +59,7 @@ Vue.prototype.$mount = function (
         return this
       }
     } else if (el) {
+      // 只有el，获得el的整体html
       template = getOuterHTML(el)
     }
     if (template) {
@@ -62,6 +68,7 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
+      // 编译
       const { render, staticRenderFns } = compileToFunctions(template, {
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,
@@ -95,6 +102,7 @@ function getOuterHTML (el: Element): string {
   }
 }
 
+// 对外提供编译入口
 Vue.compile = compileToFunctions
 
 export default Vue

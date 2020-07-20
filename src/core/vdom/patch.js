@@ -156,7 +156,7 @@ export function createPatchFunction (backend) {
     }
 
     const data = vnode.data
-    // vnode有多个子节点那么在children中，如果只有一个子节点的，如果这个子节点是组件子节点那么在child，否则在children，children和child不同时存在
+    // 如果vnode是组件节点那么只有child（这个引用的是vm），vm有且只有一个根节点_vnode，如果vnode不是组件节点，那么他的节点都在children中
     const children = vnode.children
     const tag = vnode.tag
     // 标签节点的处理
@@ -204,6 +204,7 @@ export function createPatchFunction (backend) {
       } else {
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
+          // 给vnode添加dom属性
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
         // 插入节点
@@ -230,7 +231,7 @@ export function createPatchFunction (backend) {
     let i = vnode.data
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
-      // 这里调用了vnode的init钩子
+      // 这里是创建vm，同时渲染patch后组件挂载（￥el赋值）
       if (isDef(i = i.hook) && isDef(i = i.init)) {
         i(vnode, false /* hydrating */, parentElm, refElm)
       }
@@ -248,11 +249,13 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 初始化组件，主要初始化dom，并且添加dom属性
   function initComponent (vnode, insertedVnodeQueue) {
     if (isDef(vnode.data.pendingInsert)) {
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
+    // ￥el的值（挂载在createComponent中完成）同时赋值给elm
     vnode.elm = vnode.componentInstance.$el
     if (isPatchable(vnode)) {
       invokeCreateHooks(vnode, insertedVnodeQueue)
@@ -325,11 +328,13 @@ export function createPatchFunction (backend) {
     return isDef(vnode.tag)
   }
 
+  // 调用vnode的created的hook，和操作dom属性的cb
   function invokeCreateHooks (vnode, insertedVnodeQueue) {
-    // 调用创建钩子（处理data中的属性）
+    // 调用创建钩子（处理data中的数据）,对比新旧vnode的data数据更dom属性
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)
     }
+    // 组件vnode调用钩子
     i = vnode.data.hook // Reuse variable
     if (isDef(i)) {
       if (isDef(i.create)) i.create(emptyNode, vnode)
@@ -563,6 +568,7 @@ export function createPatchFunction (backend) {
 
     let i
     const data = vnode.data
+    // 在新节点有变化的时候，更新vm
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
       i(oldVnode, vnode)
     }
@@ -570,20 +576,23 @@ export function createPatchFunction (backend) {
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {
+      // 更新dom属性
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
+      // 更新vnode
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
+    // 更新子节点
     if (isUndef(vnode.text)) {
       // 对比新旧子节点
       if (isDef(oldCh) && isDef(ch)) {
-        // 都有
+        // 都有子节点
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
       } else if (isDef(ch)) {
-        // 只有新子节点
+        // 只有新有子节点
         if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
       } else if (isDef(oldCh)) {
-        // 只有旧子节点
+        // 只有旧有子节点
         removeVnodes(elm, oldCh, 0, oldCh.length - 1)
       } else if (isDef(oldVnode.text)) {
         nodeOps.setTextContent(elm, '')
@@ -733,6 +742,81 @@ export function createPatchFunction (backend) {
   }
 
   // 返回这个patch方法
+  // 第一次初始化页面的patch从根节点开始，到叶子节点率先完成patch过程，等所有的叶子节点patch完成，再到根节点patch完成，整个是一个递归过程。patch过程中会完成整个vnode节点树，同时dom树
+  // 对于vm的初始是从根节点第一个vm（vnode）创建，逐步到叶子节点结束，顺序创建，而dom是从叶子节点开始，逐步到根节点，正好相反。这也是为什么vm实例化后ref不一定有值，原因就是相对应的dom创建在vm之后
+/**
+ * {
+  // 和`v-bind:class`一样的 API
+  // 接收一个字符串、对象或字符串和对象组成的数组
+  // 在patch的过程中，不管是组件vnode还是vnode都是更新到dom属性
+  'class': {
+    foo: true,
+    bar: false
+  },
+  // 和`v-bind:style`一样的 API
+  // 接收一个字符串、对象或对象组成的数组
+  // 在patch的过程中，不管是组件vnode还是vnode都是更新到dom属性
+  style: {
+    color: 'red',
+    fontSize: '14px'
+  },
+  // 普通的 HTML 特性
+  // 在patch的过程中，不管是组件vnode还是vnode都是更新到dom属性
+  attrs: {
+    id: 'foo'
+  },
+  // 组件 props
+  // 组件vnode创建时才会处理，并且为创建vm做准备
+  props: {
+    myProp: 'bar'
+  },
+  // DOM 属性
+  // 直接更新dom
+  domProps: {
+    innerHTML: 'baz'
+  },
+  // 事件监听器基于 `on`
+  // 所以不再支持如 `v-on:keyup.enter` 修饰器
+  // 需要手动匹配 keyCode。
+  // vnode不处理，组件vnode会把on中的事件指定到listener中为vm做准备，把nativeon再赋值给on，和vnode保持一致
+  on: {
+    click: this.clickHandler
+  },
+  // 仅用于组件，用于监听原生事件，而不是组件内部使用
+  // `vm.$emit` 触发的事件。
+  // 组件vnode处理
+  nativeOn: {
+    click: this.nativeClickHandler
+  },
+  // 自定义指令。注意，你无法对 `binding` 中的 `oldValue`
+  // 赋值，因为 Vue 已经自动为你进行了同步。
+  directives: [
+    {
+      name: 'my-custom-directive',
+      value: '2',
+      expression: '1 + 1',
+      arg: 'foo',
+      modifiers: {
+        bar: true
+      }
+    }
+  ],
+  // 作用域插槽格式
+  // { name: props => VNode | Array<VNode> }
+  scopedSlots: {
+    default: props => createElement('span', props.text)
+  },
+  // 如果组件是其他组件的子组件，需为插槽指定名称
+  slot: 'name-of-slot',
+  // 其他特殊顶层属性
+  key: 'myKey',
+  ref: 'myRef',
+  // 如果你在渲染函数中向多个元素都应用了相同的 ref 名，
+  // 那么 `$refs.myRef` 会变成一个数组。
+  refInFor: true
+}
+ */
+
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
     // 新节点不存在
     if (isUndef(vnode)) {
@@ -757,17 +841,21 @@ export function createPatchFunction (backend) {
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
         // 2个都是vnode，并且属性一样
+        // 这里新旧dom没变不需要更新父节点
         patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
       } else {
-        // 旧的是dom，属性不一样
+        // 旧的是dom，比如第一次new vue（）的时候旧的节点是id是app的dom
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // ssr相关
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }
+          // ssr相关
+          // hydrating默认是false
           if (isTrue(hydrating)) {
             if (hydrate(oldVnode, vnode, insertedVnodeQueue)) {
               invokeInsertHook(vnode, insertedVnodeQueue, true)
@@ -805,8 +893,9 @@ export function createPatchFunction (backend) {
         )
 
         // update parent placeholder node element, recursively
-        // 层层更新vnode上的parent，这些vnode都是组件vnode，并且他们的dom指向都是一样的
+        // 层层更新vnode上的parent，这些parent都是组件vnode，并且他们的dom指向都是一样的
         // 在创建一个新的dom后，以下代码就是添加dom的各种属性，以及父组件的状态，ref的指向
+        // 循环更新parent是因为dom更换了
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
@@ -816,10 +905,11 @@ export function createPatchFunction (backend) {
               cbs.destroy[i](ancestor)
             }
             // 所有的祖先都持有同样的dom,因为父节点都是组件节点
+            // 由于旧节点是个dom，更换dom后，需要重新设置dom属性
             ancestor.elm = vnode.elm
             if (patchable) {
               for (let i = 0; i < cbs.create.length; ++i) {
-                // 更新父节点的属性，事件，等都是对原生dom操作
+                // 添加父节点的属性，事件，ref等操作
                 cbs.create[i](emptyNode, ancestor)
               }
               // #6513

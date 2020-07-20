@@ -82,6 +82,7 @@ export function resolveAsyncComponent (
       factory.resolved = ensureCtor(res, baseCtor)
       // invoke callbacks only if this is not a synchronous resolve
       // (async resolves are shimmed as synchronous during SSR)
+      // 异步才会强制刷新
       if (!sync) {
         forceRender()
       }
@@ -99,7 +100,8 @@ export function resolveAsyncComponent (
       }
     })
 
-    // 执行factory，不返回promise，直接内部处理
+    // 执行factory，不返回promise，直接内部处理，返回promise，接着处理
+    // 加载组件的逻辑执行
     const res = factory(resolve, reject)
 
     if (isObject(res)) {
@@ -110,7 +112,19 @@ export function resolveAsyncComponent (
           res.then(resolve, reject)
         }
       } else if (isDef(res.component) && typeof res.component.then === 'function') {
-        // 返回一个有各种组件的普通对象
+        // 返回一个 res有各种组件的普通对象
+        // component是promise
+        /**
+         * res:{
+          component:'',
+          error:'',
+          errorComp:''
+          loading:'',
+          loadingComp:''
+          delay:'',
+          timeout:''
+        }
+         *  */ 
         res.component.then(resolve, reject)
 
         if (isDef(res.error)) {
@@ -137,6 +151,7 @@ export function resolveAsyncComponent (
         // 定义超时
         if (isDef(res.timeout)) {
           setTimeout(() => {
+            // 到时间没有返回组件，就是超时返回失败
             if (isUndef(factory.resolved)) {
               reject(
                 process.env.NODE_ENV !== 'production'

@@ -8,6 +8,7 @@ type CompiledFunctionResult = {
   staticRenderFns: Array<Function>;
 };
 
+// 创建方法，并且收集错误
 function createFunction (code, errors) {
   try {
     return new Function(code)
@@ -17,7 +18,9 @@ function createFunction (code, errors) {
   }
 }
 
+// 利用Compile获得
 export function createCompileToFunctionFn (compile: Function): Function {
+  // 建立缓存
   const cache = Object.create(null)
 
   return function compileToFunctions (
@@ -25,6 +28,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     options?: CompilerOptions,
     vm?: Component
   ): CompiledFunctionResult {
+    // 拷贝选项
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
@@ -32,6 +36,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
+      // 测试new function在当前环境是否可用
       try {
         new Function('return 1')
       } catch (e) {
@@ -48,6 +53,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 调取缓存编译结果
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -56,6 +62,14 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // compile
+    /**
+     * compiled结果
+     * {
+          ast,
+          render: code.render,
+          staticRenderFns: code.staticRenderFns
+        }
+      */
     const compiled = compile(template, options)
 
     // check compilation errors/tips
@@ -73,6 +87,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
+    // 字符串方法转成方法
     const res = {}
     const fnGenErrors = []
     res.render = createFunction(compiled.render, fnGenErrors)

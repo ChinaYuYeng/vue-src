@@ -5,6 +5,7 @@ import type VNode from 'core/vdom/vnode'
 /**
  * Runtime helper for resolving raw children VNodes into a slot object.
  * 生成vm下的$slot的数据
+ * 使用opations初始化$slot的数据，为该组件渲染slot作为准备
  */
 export function resolveSlots (
   // 需要渲染的子组件（vnode）
@@ -20,7 +21,7 @@ export function resolveSlots (
     const child = children[i]
     const data = child.data
     // remove slot attribute if the node is resolved as a Vue slot node
-    // 删除这个vnode设置的slot
+    // 删除这个vnode设置的slot属性
     if (data && data.attrs && data.attrs.slot) {
       delete data.attrs.slot
     }
@@ -58,6 +59,7 @@ function isWhitespace (node: VNode): boolean {
   return (node.isComment && !node.asyncFactory) || node.text === ' '
 }
 
+// 方法数组转换成键值对
 export function resolveScopedSlots (
   fns: ScopedSlotsData, // see flow/vnode
   res?: Object

@@ -62,6 +62,7 @@ export function initState (vm: Component) {
   }
 }
 // 初始化props
+// 设置props选项的值劫持并且代理到_props
 function initProps (vm: Component, propsOptions: Object) {
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
@@ -109,6 +110,7 @@ function initProps (vm: Component, propsOptions: Object) {
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 在extend添加的选项中的props已经被代理到了_props所有不需要在代理了
     if (!(key in vm)) {
       // 通过vm代理访问
       proxy(vm, `_props`, key)
@@ -211,6 +213,7 @@ function initComputed (vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+    // 类似props，在extend添加的选项中的computed已经被生成了
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -223,7 +226,7 @@ function initComputed (vm: Component, computed: Object) {
   }
 }
 
-// 把comupted定义到vm上，以属性的方式使用
+// 把comupted定义到target（一般是vm，也有可能是原型对象）上，以属性的方式使用
 export function defineComputed (
   target: any,
   key: string,

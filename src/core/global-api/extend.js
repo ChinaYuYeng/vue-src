@@ -9,19 +9,24 @@ export function initExtend (Vue: GlobalAPI) {
    * Each instance constructor, including Vue, has a unique
    * cid. This enables us to create wrapped "child
    * constructors" for prototypal inheritance and cache them.
+   * 构造函数唯一标识
    */
   Vue.cid = 0
   let cid = 1
 
   /**
    * Class inheritance
-   * 这里可以理解成子组件不断的扩展vue根构造函数，扩展的是用户输入的选项
+   * 这里可以理解成子构造函数不断的扩展vue根构造函数，扩展的是用户输入的选项
+   * 这里主要做的就是创建一个继承了vue根方法的子方法，合并用户提供的opations后并缓存
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
-    //这个this指向的是vue这个构造函数，函数本身也是一个object，可以有自己的属性，extend由vue这个对象调用，this指向的是vue构造方法，这里的vue构造方法也可以是任何extend获得的构造方法
+    //这个this指向的是这个构造函数对象，函数本身也是一个object，可以有自己的属性，extend由构造函数这个对象调用，this指向的是构造方法对象，这里的构造方法除了vue也可以是任何extend获得的构造方法
     const Super = this 
     const SuperId = Super.cid
+    // 缓存的构造函数
+    // 设置这个可以达到同一个选项对象在同一个构造方法对象下extend得到的子构造方法是一样的，换一个构造方法extend，因为cid不同，缓存就失效了。或者换了一个选项对象，在相同的构造函数下extend，缓存也是失效的，因为不存在缓存
+    // 防止反复生成
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
@@ -50,6 +55,7 @@ export function initExtend (Vue: GlobalAPI) {
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
+    // 防止每次实例化都要重新初始化props和computed
     if (Sub.options.props) {
       initProps(Sub)
     }
@@ -65,6 +71,7 @@ export function initExtend (Vue: GlobalAPI) {
 
     // create asset registers, so extended classes
     // can have their private assets too.
+     // 复制vue.component vue.filter vue.directive
     ASSET_TYPES.forEach(function (type) {
       Sub[type] = Super[type]
     })
@@ -86,6 +93,7 @@ export function initExtend (Vue: GlobalAPI) {
   }
 }
 
+// 和instance中的initProps的方法名一样，但完全不同，这里只是把访问vm.xxx代理到_props,定义在原型上，以便每个实例不需要带代理一遍
 function initProps (Comp) {
   const props = Comp.options.props
   for (const key in props) {
@@ -93,6 +101,7 @@ function initProps (Comp) {
   }
 }
 
+// 初始化计算方法，静态定义，避免每个实例都生成一次
 function initComputed (Comp) {
   const computed = Comp.options.computed
   for (const key in computed) {

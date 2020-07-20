@@ -202,6 +202,7 @@ export default class Watcher {
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
         // have mutated.
+        // 这里只要value是obj，就触发。所以我们要自己处理是否要继续执行这个watch的回调函数。比如数组长度没变就不执行逻辑
         isObject(value) ||
         this.deep
       ) {

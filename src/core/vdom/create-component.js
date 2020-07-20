@@ -54,19 +54,25 @@ const componentVNodeHooks = {
     } else {
       // 这个child不知道是什么时候赋值给vnode的
       const child = vnode.componentInstance = createComponentInstanceForVnode(
-        // 这个vnode是vm的parentvnode
+        // 这个vnode是vm的parentvnode,也是_vnode的parent
         vnode,
         // 当前激活的vm，是新创建vm的父vm
         activeInstance,
         parentElm,
         refElm
       )
+      // 第一次￥mount时hydrating是false，因为真实dom还不知道（子节点的dom还没创建）,在该vm的渲染方法结束，并且patch之后￥el才会被赋值成patch的返回结果。
+      // 换句话说这里不是￥mount完成挂载，而是由patch完成的挂载
+      // ￥el和elm是一回事
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
 
+  // 更新旧节点的vm
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
+    // 这个component vnode对应的vm。也等同于vnode下的child属性
+    // 新建的vnode的componentInstance,在有旧节点的情况下有别于上面的init方法（直接创建），这里是把旧节点的vm赋值给新节点，同时更新vm的属性
     const child = vnode.componentInstance = oldVnode.componentInstance
     // 新的vnode去更新老的vm
     updateChildComponent(
@@ -78,6 +84,7 @@ const componentVNodeHooks = {
     )
   },
 
+  // 组件mounted或者Activated
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
@@ -113,7 +120,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
-// 创建自定义组件
+// 创建自定义组件vnode，仅此并不创建组件内节点。当patch后发现是个组件节点，才会进一步创建vm
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -175,12 +182,14 @@ export function createComponent (
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events
-  // 转换v-model
+  // 转换v-model，组件vnode有效
+  // 这个选项在官网jsx示例中并没有说明v-model可以这样配置
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
 
   // extract props
+  // 组件vnode特有，非组件vnode有也是忽略的
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component
@@ -194,6 +203,7 @@ export function createComponent (
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
+  // 在更新组件和非组件的事件时统一用的是on，nativeon（组件vnode才有的属性，非组件有这个属性也是被忽略的）只是临时工，这个逻辑参看patch，invokeCreateHooks方法
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
@@ -217,6 +227,18 @@ export function createComponent (
   // return a placeholder vnode
   const name = Ctor.options.name || tag
   // 创建一个组件vnode
+  // 组件elm在vnode穿件时不赋值
+  // 和非组件vnode的创建方式，区别非常明显
+  /**
+   *  vnode = new VNode(
+        tag, data, children,
+        undefined, undefined, context
+      )
+      显然 { Ctor, propsData, listeners, tag, children },是组件vnode特有的目的是为了构造vm
+      tag，children的位置区别
+      data没有区别，data几乎是创建vnode的数据仓库，data参与vnode的整个生命过程
+   */
+
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
@@ -257,6 +279,7 @@ export function createComponentInstanceForVnode (
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
   // new component的构造方法
+  // componentOptions里面已经有一些vm需要的选项了，为什么不直接使用，因为vm实例化过程有设置这些选项的动作，不需要重复
   return new vnode.componentOptions.Ctor(options)
 }
 

@@ -23,6 +23,7 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
+// 处理input v-model指令
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap

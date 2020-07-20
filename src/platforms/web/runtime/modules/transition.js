@@ -29,6 +29,7 @@ export function enter (vnode: VNodeWithData, toggleDisplay: ?() => void) {
     el._leaveCb()
   }
 
+  // 获取transition定义
   const data = resolveTransition(vnode.data.transition)
   if (isUndef(data)) {
     return
@@ -99,6 +100,7 @@ export function enter (vnode: VNodeWithData, toggleDisplay: ?() => void) {
     ? (appearCancelled || enterCancelled)
     : enterCancelled
 
+    // 持续时间
   const explicitEnterDuration: any = toNumber(
     isObject(duration)
       ? duration.enter
@@ -182,6 +184,7 @@ export function leave (vnode: VNodeWithData, rm: Function) {
     el._enterCb()
   }
 
+  // 解析transition定义
   const data = resolveTransition(vnode.data.transition)
   if (isUndef(data) || el.nodeType !== 1) {
     return rm()
@@ -219,6 +222,7 @@ export function leave (vnode: VNodeWithData, rm: Function) {
     checkDuration(explicitLeaveDuration, 'leave', vnode)
   }
 
+  // 只执行一次，执行完就清空了
   const cb = el._leaveCb = once(() => {
     if (el.parentNode && el.parentNode._pending) {
       el.parentNode._pending[vnode.key] = null
@@ -305,6 +309,7 @@ function isValidDuration (val) {
  * - a merged hook (invoker) with the original in .fns
  * - a wrapped component method (check ._length)
  * - a plain function (.length)
+    获取某个方法的参数个数
  */
 function getHookArgumentsLength (fn: Function): boolean {
   if (isUndef(fn)) {
