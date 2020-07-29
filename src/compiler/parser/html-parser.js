@@ -164,7 +164,7 @@ export function parseHTML (html, options) {
         options.chars(text)
       }
     } else {
-      // 在script/style中
+      // 在script/style/textarea中
       let endTagLength = 0
       const stackedTag = lastTag.toLowerCase()
       const reStackedTag = reCache[stackedTag] || (reCache[stackedTag] = new RegExp('([\\s\\S]*?)(</' + stackedTag + '[^>]*>)', 'i'))

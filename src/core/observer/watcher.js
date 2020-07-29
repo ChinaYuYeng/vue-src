@@ -51,7 +51,7 @@ export default class Watcher {
     if (isRenderWatcher) {
       vm._watcher = this //渲染函数的观察者
     }
-    vm._watchers.push(this) //其他观察者数组
+    vm._watchers.push(this) //所有的观察者
     // options
     if (options) {
       this.deep = !!options.deep
@@ -192,6 +192,7 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * 触发cb
    */
   run () {
     if (this.active) {
@@ -245,7 +246,7 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
-   * 销毁watcher，仅仅在vue实例被销毁
+   * 销毁watcher
    */
   teardown () {
     if (this.active) {

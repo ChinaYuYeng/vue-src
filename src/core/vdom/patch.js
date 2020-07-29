@@ -133,11 +133,11 @@ export function createPatchFunction (backend) {
   function createElm (
     vnode,
     insertedVnodeQueue,
-    parentElm,
+    parentElm, //父节点的el
     refElm,
-    nested,
-    ownerArray,
-    index
+    nested, //当前节点是否内嵌
+    ownerArray, //当前节点所在的数组，可以算作是兄弟vnode
+    index //所在数组的索引
   ) {
     if (isDef(vnode.elm) && isDef(ownerArray)) {
       // This vnode was used in a previous render!
@@ -202,9 +202,10 @@ export function createPatchFunction (backend) {
           insert(parentElm, vnode.elm, refElm)
         }
       } else {
+        // 处理子节点，也是递归的入口，完成整个dom建立的过程
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
-          // 给vnode添加dom属性
+          // 给创建的dom更新属性
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
         // 插入节点
@@ -534,7 +535,7 @@ export function createPatchFunction (backend) {
     }
   }
 
-  // 对比新旧vnode
+  // 对比新旧vnode,同时更新dom
   function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
     if (oldVnode === vnode) {
       return
@@ -742,8 +743,8 @@ export function createPatchFunction (backend) {
   }
 
   // 返回这个patch方法
-  // 第一次初始化页面的patch从根节点开始，到叶子节点率先完成patch过程，等所有的叶子节点patch完成，再到根节点patch完成，整个是一个递归过程。patch过程中会完成整个vnode节点树，同时dom树
-  // 对于vm的初始是从根节点第一个vm（vnode）创建，逐步到叶子节点结束，顺序创建，而dom是从叶子节点开始，逐步到根节点，正好相反。这也是为什么vm实例化后ref不一定有值，原因就是相对应的dom创建在vm之后
+  // 第一次初始化页面的patch从根节点开始，到叶子节点率先完成patch过程，等所有的叶子节点patch完成，再到根节点patch完成，整个是一个递归过程。patch过程中会完成整个vnode节点树(每个组件vnode都会重复vm -> render -> patch -> el这个过程)，同时dom树.vm和dom都是递归顺序建立
+  // 这也是为什么vm实例化后ref不一定有值，原因就是相对应的dom创建在vm之后
 /**
  * {
   // 和`v-bind:class`一样的 API

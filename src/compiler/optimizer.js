@@ -26,7 +26,7 @@ export function optimize (root: ?ASTElement, options: CompilerOptions) {
   // first pass: mark all non-static nodes.
   // 标记每个节点是否静态
   markStatic(root)
-  // 在每个的基础上标记一块节点是否静态，以便一起渲染
+  // 在每个的基础上标记一块节点是否静态，以便一起渲染静态节点
   // second pass: mark static roots.
   markStaticRoots(root, false)
 }

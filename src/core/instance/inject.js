@@ -57,6 +57,7 @@ export function resolveInject (inject: any, vm: Component): ?Object {
       const provideKey = inject[key].from
       let source = vm
       // 这里有点特殊，vm的inject优先匹配vm自己的provide，进而一步步往上找（注意，这个时候vm自己的provide还没初始化，所以_provided是undefined）
+      // 逐级网上找最近的provide提供的key
       while (source) {
         if (source._provided && hasOwn(source._provided, provideKey)) {
           result[key] = source._provided[provideKey]
@@ -64,6 +65,7 @@ export function resolveInject (inject: any, vm: Component): ?Object {
         }
         source = source.$parent
       }
+      // 当inject的key没有找到满足的provide，使用default
       if (!source) {
         if ('default' in inject[key]) {
           const provideDefault = inject[key].default

@@ -4,6 +4,7 @@ import { _Set as Set, isObject } from '../util/index'
 import type { SimpleSet } from '../util/index'
 import VNode from '../vdom/vnode'
 
+// 单次traverse执行时，用于去重
 const seenObjects = new Set()
 
 /**

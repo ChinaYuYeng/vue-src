@@ -132,6 +132,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     ob = new Observer(value)
   }
   if (asRootData && ob) {
+    // 作为普通劫持对象和vm下的data对象的区别
     ob.vmCount++
   }
   return ob
@@ -147,12 +148,12 @@ export function defineReactive (
   obj: Object,
   key: string,
   val: any,
-  customSetter?: ?Function,
+  customSetter?: ?Function,//自定义setter，主要用在只读属性，无法set
   shallow?: boolean //是否浅劫持属性
 ) {
   const dep = new Dep() //每个array，obj都持有这个
 
-  const property = Object.getOwnPropertyDescriptor(obj, key) //看看是不是原先就有属性定义，这个属性定义有可能是已经被劫持过的对象（多数情况），除非你自己设置的get，set，当时会极大的干扰框架处理
+  const property = Object.getOwnPropertyDescriptor(obj, key) //看看是不是原先就有属性描述符定义，用于使用用户的逻辑来get，set值
   if (property && property.configurable === false) {
     //从这里看，我可以设置不可配置属性来阻止属性响应式
     return
@@ -173,15 +174,15 @@ export function defineReactive (
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
-      //getter获得的值，这里不在进一步收集，处理。这个getter可能是之前已经劫持 了，也有可能用户自定义了getter
+      //使用原来的getter获取值，没有就是val
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
-        dep.depend() //这里的这个属性，这个属性的子属性都是在这里和渲染watch绑定了关系
+        dep.depend() //当前属性和渲染watch绑定了关系
         if (childOb) {
-        	//这里收集的是数组或者对象的依赖，在数组的方法中会触发相应的notify，
-        	//如果是对象的话，在set（line：213）方法里被notify，比如给对象增加了一个新属性
+          // 收集当前属性值（如果可以被劫持）的依赖
           childOb.dep.depend()
           if (Array.isArray(value)) {
+            // 如果是数组立马收集所有的子元素，但是对象却不着急，因为对象的子属性可以自主触发getter方法收集依赖
           	//这里是收集数组元素的依赖
             dependArray(value)
           }
@@ -202,6 +203,7 @@ export function defineReactive (
         customSetter()
       }
       if (setter) {
+        // 使用用户的setter设置值
         setter.call(obj, newVal)
       } else {
         val = newVal
