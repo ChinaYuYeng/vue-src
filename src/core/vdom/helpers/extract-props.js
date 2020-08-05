@@ -43,6 +43,9 @@ export function extractPropsFromVNodeData (
           )
         }
       }
+      // 优先从props中提取数据，然后从attrs。
+      //在系统从模板编译的组件，是没有props（ast中的props是指domprop）选项的，自定义渲染函数的时候会有props选项，你也可以不写props，写在attrs也是可以实现props选项的功能
+      // 原因就在这里attrs也被用来提取props（提取完的同时attr中的属性会被删除）
       checkProp(res, props, key, altKey, true) ||
       checkProp(res, attrs, key, altKey, false)
     }

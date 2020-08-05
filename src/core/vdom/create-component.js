@@ -120,7 +120,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
-// 创建自定义组件vnode，仅此并不创建组件内节点。当patch后发现是个组件节点，才会进一步创建vm
+// 创建自定义组件vnode，不创建组件内节点。当patch后发现是个组件节点，才会进一步创建vm
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -189,6 +189,7 @@ export function createComponent (
   }
 
   // extract props
+  // 根据组件定义的props，提取给定的值
   // 组件vnode特有，非组件vnode有也是忽略的
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
