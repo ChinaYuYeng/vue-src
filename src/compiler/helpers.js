@@ -44,6 +44,7 @@ export function addDirective (
   el.plain = false
 }
 
+// 给ast事件选项添加事件
 export function addHandler (
   el: ASTElement,
   name: string,

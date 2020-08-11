@@ -212,6 +212,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
 
   // directives first.
   // directives may mutate the el's other properties before they are generated.
+  // 这里生成指令数据，同时会拆分v-model的逻辑，生成对应的赋值，以及事件监听代码字符串分别存入el.props和el.event，会在下面的代码中进一步生成data
   const dirs = genDirectives(el, state)
   if (dirs) data += dirs + ','
 
@@ -314,7 +315,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
   return data
 }
 
-// 生成组件data对象的自定义指令数据
+// 生成组件data对象的自定义指令数据，以及某些指令需要提前转换成代码字符串的，例如v-model
 function genDirectives (el: ASTElement, state: CodegenState): string | void {
   // 自定义指令（系统指令都被特殊处理了）
   const dirs = el.directives
@@ -329,6 +330,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
     if (gen) {
       // compile-time directive that manipulates AST.
       // returns true if it also needs a runtime counterpart.
+      // 这里生成指令对应的代码字符串，v-model会在这里生存不同dom对应的不同适配代码
       needRuntime = !!gen(el, dir, state.warn)
     }
     if (needRuntime) {

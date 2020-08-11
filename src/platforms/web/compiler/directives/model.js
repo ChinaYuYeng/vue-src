@@ -33,6 +33,7 @@ export default function model (
     }
   }
 
+  // 分别适配v-model指令在不同dom或者组件
   if (el.component) {
     genComponentModel(el, value, modifiers)
     // component v-model doesn't need extra runtime

@@ -302,7 +302,8 @@ function initMethods (vm: Component, methods: Object) {
         )
       }
     }
-    // 给methods中的方法全部绑定到这个vm下
+    // 给methods中的方法全部绑定到这个vm下,这就是为什么方法被传递到子节点由子节点调用也不会改变this指向
+    //这些方法传入到别的vm下，也不会改变这些方法的this指向（即便是被call，apply调用后也不会，因为是bind的特性）
     vm[key] = methods[key] == null ? noop : bind(methods[key], vm)
   }
 }

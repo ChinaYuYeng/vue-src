@@ -611,7 +611,7 @@ function  processAttrs (el) {
         // 添加事件
         addHandler(el, name, value, modifiers, false, warn)
       } else { // normal directives
-        // 自定义指令
+        // 其他指令包含v-model
         // 指令名
         name = name.replace(dirRE, '')
         // parse arg

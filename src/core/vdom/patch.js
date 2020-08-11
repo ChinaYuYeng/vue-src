@@ -569,7 +569,9 @@ export function createPatchFunction (backend) {
 
     let i
     const data = vnode.data
-    // 在新节点有变化的时候，更新vm
+    // 如果是组件vnode，那么将会更新新vnode对应的vm，同时强制重新渲染整个vnode，重复整个render+vnode+dom的更新过程
+    // 和创建vnode的时候是一样的思路，在创建组件vnode的时候重复整个建立vm+render+vnode+dom的过程
+    // 我们可以理解为一个vm对应的就是一个vue建立或者更新的独立单元，这些独立单元能组合形成更大的一个独立单元
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
       i(oldVnode, vnode)
     }
@@ -577,12 +579,12 @@ export function createPatchFunction (backend) {
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {
-      // 更新dom属性
+      // 更新当前节点（组件vonde或者普通vnode）对应的dom属性
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
-      // 更新vnode
+
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
-    // 更新子节点
+    // patch子节点
     if (isUndef(vnode.text)) {
       // 对比新旧子节点
       if (isDef(oldCh) && isDef(ch)) {
