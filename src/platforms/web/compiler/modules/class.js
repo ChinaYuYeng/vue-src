@@ -7,7 +7,7 @@ import {
   baseWarn
 } from 'compiler/helpers'
 
-// 处理静态，绑定class属性
+// 编译阶段处理ast中的class,静态或者动态,其实很简单都是取值赋值,主要工作都给到了生成vnode时处理
 function transformNode (el: ASTElement, options: CompilerOptions) {
   const warn = options.warn || baseWarn
   const staticClass = getAndRemoveAttr(el, 'class')
@@ -32,6 +32,7 @@ function transformNode (el: ASTElement, options: CompilerOptions) {
   }
 }
 
+// class生成data
 function genData (el: ASTElement): string {
   let data = ''
   if (el.staticClass) {

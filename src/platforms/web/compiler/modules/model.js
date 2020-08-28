@@ -23,7 +23,7 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
-// 处理input v-model指令,type是动态的情况下
+// 处理input v-model指令,type是动态的情况下,最终生成一个根据type加以判断的v-if指令条件内容
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap

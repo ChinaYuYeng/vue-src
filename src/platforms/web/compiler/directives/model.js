@@ -11,6 +11,7 @@ let warn
 export const RANGE_TOKEN = '__r'
 export const CHECKBOX_RADIO_TOKEN = '__c'
 
+// 处理v-model指令,使其转换成domProp,和event
 export default function model (
   el: ASTElement,
   dir: ASTDirective,
@@ -23,6 +24,7 @@ export default function model (
   const type = el.attrsMap.type
 
   if (process.env.NODE_ENV !== 'production') {
+    // input 是file的无法设置value
     // inputs with type="file" are read only and setting the input's
     // value will throw an error.
     if (tag === 'input' && type === 'file') {
@@ -72,6 +74,7 @@ function genCheckboxModel (
   const valueBinding = getBindingAttr(el, 'value') || 'null'
   const trueValueBinding = getBindingAttr(el, 'true-value') || 'true'
   const falseValueBinding = getBindingAttr(el, 'false-value') || 'false'
+  // 操作dom的checked属性进行勾选
   addProp(el, 'checked',
     `Array.isArray(${value})` +
     `?_i(${value},${valueBinding})>-1` + (
@@ -80,6 +83,7 @@ function genCheckboxModel (
         : `:_q(${value},${trueValueBinding})`
     )
   )
+  // 添加change事件监听checked的变化
   addHandler(el, 'change',
     `var $$a=${value},` +
         '$$el=$event.target,' +
@@ -94,6 +98,7 @@ function genCheckboxModel (
   )
 }
 
+// 处理radio的v-model
 function genRadioModel (
   el: ASTElement,
   value: string,
@@ -102,16 +107,20 @@ function genRadioModel (
   const number = modifiers && modifiers.number
   let valueBinding = getBindingAttr(el, 'value') || 'null'
   valueBinding = number ? `_n(${valueBinding})` : valueBinding
+  // 添加el,domProp操作
   addProp(el, 'checked', `_q(${value},${valueBinding})`)
+  // 添加change事件
   addHandler(el, 'change', genAssignmentCode(value, valueBinding), null, true)
 }
 
+// 处理select的v-model
 function genSelect (
   el: ASTElement,
   value: string,
   modifiers: ?ASTModifiers
 ) {
   const number = modifiers && modifiers.number
+  // 获取选中option的值的代码
   const selectedVal = `Array.prototype.filter` +
     `.call($event.target.options,function(o){return o.selected})` +
     `.map(function(o){var val = "_value" in o ? o._value : o.value;` +
@@ -120,9 +129,11 @@ function genSelect (
   const assignment = '$event.target.multiple ? $$selectedVal : $$selectedVal[0]'
   let code = `var $$selectedVal = ${selectedVal};`
   code = `${code} ${genAssignmentCode(value, assignment)}`
+  // 添加select组件的change事件
   addHandler(el, 'change', code, null, true)
 }
 
+// v-model默认的操作
 function genDefaultModel (
   el: ASTElement,
   value: string,

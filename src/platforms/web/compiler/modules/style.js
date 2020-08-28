@@ -8,7 +8,7 @@ import {
   baseWarn
 } from 'compiler/helpers'
 
-// 处理style属性
+// 编译阶段处理style属性
 function transformNode (el: ASTElement, options: CompilerOptions) {
   const warn = options.warn || baseWarn
   const staticStyle = getAndRemoveAttr(el, 'style')

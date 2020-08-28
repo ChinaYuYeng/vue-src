@@ -202,6 +202,7 @@ function initComputed (vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 收集计算属性getter方法的内部依赖，以便在内部值改变的时候重新计算计算属性。这就是计算属性，也使用了watcher
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -257,16 +258,17 @@ export function defineComputed (
       )
     }
   }
+  // 计算属性的get，set方法都会定义到属性的描述里面，因此我们使用计算属性，是一个属性（明明定义的是一个方法）的原因
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
-// computed特色值的计算和缓存
+// computed特色，值的计算和缓存，利用watch的value实现缓存
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
       if (watcher.dirty) {
-        // 脏数据，重新求值
+        // 脏数据，重新求值，再一次使用数据的时候才重新求值，与别的类型的watch不一样。好处是利于性能
         watcher.evaluate()
       }
       if (Dep.target) {
