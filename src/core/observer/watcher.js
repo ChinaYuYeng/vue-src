@@ -178,13 +178,13 @@ export default class Watcher {
     // computed会使用lazy=true
     if (this.lazy) {
       // 延迟求值，比如computed
-      // 在下一次getter配合evaluate重新求值
+      // 在下一次取值的时候配合evaluate重新求值
       this.dirty = true
     } else if (this.sync) {
       // 同步
       this.run()
     } else {
-      // 异步
+      // 异步触发watch，主要在一个事件循环中的微任务队列执行，在浏览器渲染前
       queueWatcher(this)
     }
   }

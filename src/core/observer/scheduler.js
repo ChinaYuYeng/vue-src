@@ -129,6 +129,7 @@ function callActivatedHooks (queue) {
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
+  // 如果当前队列中已经有要执行的watch了，那么二次触发就不再放入队列（性能优化，因为在一个事件循环中执行一次get依赖和cb回调，就够了）
   if (has[id] == null) {
     has[id] = true
     if (!flushing) {
