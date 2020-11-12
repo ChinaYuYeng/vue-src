@@ -11,6 +11,8 @@ import {
 
 /**
  * Runtime helper for merging v-bind="object" into a VNode's data.
+ * 比如v-bind="$attrs" 官方文档有说明
+ * 提取v-bind的数据到当前vnode的data中
  */
 export function bindObjectProps (
   data: any,
@@ -29,6 +31,7 @@ export function bindObjectProps (
       if (Array.isArray(value)) {
         value = toObject(value)
       }
+      // 把value（v-bind的值）对象中的值分配到vnode的data中的domprops或者attrs中
       let hash
       for (const key in value) {
         if (
@@ -36,6 +39,7 @@ export function bindObjectProps (
           key === 'style' ||
           isReservedAttribute(key)
         ) {
+          // 如果bind里面有{class:'',style:''}就让hash = data给data.calss = class
           hash = data
         } else {
           const type = data.attrs && data.attrs.type
@@ -43,6 +47,7 @@ export function bindObjectProps (
             ? data.domProps || (data.domProps = {})
             : data.attrs || (data.attrs = {})
         }
+        // 如果bind的属性已经有了，就不再覆盖
         if (!(key in hash)) {
           hash[key] = value[key]
 

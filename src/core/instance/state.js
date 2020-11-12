@@ -71,6 +71,7 @@ function initProps (vm: Component, propsOptions: Object) {
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // 根节点的props是允许修改的，this.xx = yy。可以当作vm自有的属性一样，同时下方的警告会被关闭
   if (!isRoot) {
     // 非根组件，关闭属性劫持，我的理解是子组件的prop属性值都来自于父组件的data下的属性，已经做了属性劫持
     toggleObserving(false)
@@ -93,7 +94,8 @@ function initProps (vm: Component, propsOptions: Object) {
         )
       }
       defineReactive(props, key, value, () => {
-        // 自定义setter警告
+        // 自定义setter警告，在组件更新props时不会警告（因为组件更新时会设置最新的propsdata来触发渲染或者别的watch），在当前vm是根vm是不会警告，
+        // isRoot = !vm.$parent 可以把props当成data中的属性一样使用。
         if (vm.$parent && !isUpdatingChildComponent) {
           warn(
             `Avoid mutating a prop directly since the value will be ` +

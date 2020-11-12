@@ -274,7 +274,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
     data += `${genScopedSlots(el.scopedSlots, state)},`
   }
   // component v-model
-  // 自己写的data中没有model，不知道后面会不会处理掉
+  // 组件v-model会生成这个选项（在genDirectives中生成），并置入到data对象中，data对象在渲染的时候将其转换成value和input的组合
   if (el.model) {
     data += `model:{value:${
       el.model.value
@@ -326,11 +326,15 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
   for (i = 0, l = dirs.length; i < l; i++) {
     dir = dirs[i]
     needRuntime = true
+    // 这里会特殊处理三种指令，bind，model，on
+    // 这里的bind不是常用的v-bind:name=''，常用的早就被放到el.attrs中了，这里处理的是v-bind=‘’
+    // model是生成适配v-model的代码
+    // on是什么？
     const gen: DirectiveFunction = state.directives[dir.name]
     if (gen) {
       // compile-time directive that manipulates AST.
       // returns true if it also needs a runtime counterpart.
-      // 这里生成指令对应的代码字符串，v-model会在这里生存不同dom对应的不同适配代码
+      // 这里生成指令对应的代码字符串，v-model会在这里生成不同dom对应的不同适配代码
       needRuntime = !!gen(el, dir, state.warn)
     }
     if (needRuntime) {
@@ -346,6 +350,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
     }
   }
   if (hasRuntime) {
+    // 去掉，加上]结束
     return res.slice(0, -1) + ']'
   }
 }
@@ -443,6 +448,7 @@ export function genChildren (
   }
 }
 
+// 决定规范化children采用的方式
 // determine the normalization needed for the children array.
 // 0: no normalization needed
 // 1: simple normalization needed (possible 1-level deep nested array)
@@ -470,6 +476,7 @@ function getNormalizationType (
   return res
 }
 
+// 是否需要普通规范化children数组（一级深度，[[]]）
 function needsNormalization (el: ASTElement): boolean {
   return el.for !== undefined || el.tag === 'template' || el.tag === 'slot'
 }

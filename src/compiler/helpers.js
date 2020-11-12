@@ -94,6 +94,7 @@ export function addHandler (
   }
 
   let events
+  // 根据是否有native，来添加到指定的事件类型
   if (modifiers.native) {
     delete modifiers.native
     events = el.nativeEvents || (el.nativeEvents = {})

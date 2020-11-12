@@ -73,9 +73,9 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
-      // 第一次渲染没有之前的vnode
-      // 第一次patch前￥el是空的，有可能是预设的el，比如new vue（）先挂载到一个dom
-      // patch之后生成新的el，完成视图更新
+      // 第一次渲染没有之前的vnode，用el代替
+      // 第一次patch前￥el是空的，有可能是预设的el，比如new vue({el:'...'})
+      // patch之后生成新的el，会替换原有的vm.$el（如果原来的el是在dom树中的，会获得原来的el的位置，patch中完成位置替换）,完成视图更新
       // 非根节点（系统自动挂载的节点）在patch后完成挂载，而根节点比如 new vue（）是主动挂载 
       // _parentElm会传递给该vm下的组件vnode在创建自己的vm，代代相传递归到叶子节点，在回来逐一删除
       vm.$el = vm.__patch__(
@@ -118,6 +118,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 
   // 实例销毁，资源释放
+  // 主要时释放vm内部的资源和外部关系，vm对应的父vnode的外部关系
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     if (vm._isBeingDestroyed) {
@@ -131,6 +132,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
       remove(parent.$children, vm)
     }
     // teardown watchers
+    // 关闭所有的watch
     if (vm._watcher) {
       vm._watcher.teardown()
     }
@@ -140,22 +142,26 @@ export function lifecycleMixin (Vue: Class<Component>) {
     }
     // remove reference from data ob
     // frozen object may not have observer.
+    // 释放data的响应式属性
     if (vm._data.__ob__) {
       vm._data.__ob__.vmCount--
     }
     // call the last hook...
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
+    // 通过patch销毁旧的node
     vm.__patch__(vm._vnode, null)
     // fire destroyed hook
     callHook(vm, 'destroyed')
     // turn off all instance listeners.
+    // 关闭所有的事件监听
     vm.$off()
     // remove __vue__ reference
     if (vm.$el) {
       vm.$el.__vue__ = null
     }
     // release circular reference (#6759)
+    // 释放vm的父node对parentNode的引用
     if (vm.$vnode) {
       vm.$vnode.parent = null
     }
@@ -283,12 +289,12 @@ export function updateChildComponent (
     for (let i = 0; i < propKeys.length; i++) {
       const key = propKeys[i]
       const propOptions: any = vm.$options.props // wtf flow?
-      // 重新取值
+      // 组件更新时会重新获取props的数据，进而触发之前收集的依赖watch。isUpdatingChildComponent = true的时候是可以更改props的data的，而不会警告报错
       props[key] = validateProp(key, propOptions, propsData, vm)
     }
     toggleObserving(true)
     // keep a copy of raw propsData
-    // vm持有propsdata，也就是用户传入的props的值
+    // 更新vm持有propsdata
     vm.$options.propsData = propsData
   }
 
@@ -370,6 +376,7 @@ export function callHook (vm: Component, hook: string) {
       }
     }
   }
+  // 调用用户使用$on或者$once等在运行时注册的生命周期钩子函数
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }

@@ -388,6 +388,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * 合并所有选项 data,props,watcher,methods,computed ...
  * parent是构造函数的opations
  * child是用户传递的opations
+ * 选项合并之所以没有考虑被合并对象需要深度拷贝的问题，是因为没有深度拷贝，并不会改变被合并对象作为公有对象反复使用，除了data选项，其他的选项都是只读的
  */
 export function mergeOptions (
   parent: Object,
@@ -410,6 +411,7 @@ export function mergeOptions (
   normalizeDirectives(child)
   //是否有继承选项
   const extendsFrom = child.extends
+  // 合并孙子选项
   if (extendsFrom) {
     //优先合并继承选项
     parent = mergeOptions(parent, extendsFrom, vm)

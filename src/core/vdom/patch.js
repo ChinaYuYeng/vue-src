@@ -78,7 +78,7 @@ export function createPatchFunction (backend) {
   const { modules, nodeOps } = backend
 
   // modules中是同一属性的不同情况下的操作方法，比如created ， update，destroy等操作方法
-  // 这里是把各种模块下的钩子方法重新组织成同命名下的所有操作方法放一起
+  // 这里是把各种模块下的钩子方法重新组织成相同命名的所有操作方法放一起
   for (i = 0; i < hooks.length; ++i) {
     cbs[hooks[i]] = []
     for (j = 0; j < modules.length; ++j) {
@@ -88,6 +88,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 用dom创建一个vnode
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -133,8 +134,8 @@ export function createPatchFunction (backend) {
   function createElm (
     vnode,
     insertedVnodeQueue,
-    parentElm, //父节点的el
-    refElm,
+    parentElm, //旧el的父el
+    refElm, //旧el的兄弟el
     nested, //当前节点是否内嵌
     ownerArray, //当前节点所在的数组，可以算作是兄弟vnode
     index //所在数组的索引
@@ -321,6 +322,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 找到非组件节点，获得非组件节点的tag，也就是实际被操作的真实的dom
   function isPatchable (vnode) {
     // 寻找子节点不是component vm的节点
     while (vnode.componentInstance) {
@@ -391,13 +393,13 @@ export function createPatchFunction (backend) {
     }
   }
 
-  // 从父节点删除，并且调用destroy钩子
+  // 从父节点删除旧的节点，并且调用destroy钩子
   function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
       if (isDef(ch)) {
         if (isDef(ch.tag)) {
-          removeAndInvokeRemoveHook(ch)
+          removeAndInvokeRemoveHook(ch) //这里会删除旧的dom
           invokeDestroyHook(ch)
         } else { // Text node
           removeNode(ch.elm)
@@ -875,7 +877,7 @@ export function createPatchFunction (backend) {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
-          // 根据oldnode创建一个vnode
+          // 根据真实dom创建一个临时vnode，之后该dom和vnode会被删除，完成第一次patch
           oldVnode = emptyNodeAt(oldVnode)
         }
 
@@ -937,10 +939,10 @@ export function createPatchFunction (backend) {
 
         // destroy old node
         if (isDef(parentElm)) {
-          // 有父节点就移除旧的dom
+          // 有父节点就解除和父节点的dom关系，同时销毁oldvnode
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
-          // 没有父节点，可能是根节点，或者是游离的节点，不需要remove
+          // 没有父节点，可能是根节点，或者是游离的节点，不需要remove，只需要销毁oldvnode
           invokeDestroyHook(oldVnode)
         }
       }

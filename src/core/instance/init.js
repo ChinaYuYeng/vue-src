@@ -35,7 +35,7 @@ export function initMixin (Vue: Class<Component>) {
     // merge options
     //初始化合并选项
     if (options && options._isComponent) {
-      //内部组件生成opations
+      // 在设置了_isComponent（这个在组件vnode创建vm的时候会使用）的时候会优化选项合并。
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
@@ -76,13 +76,14 @@ export function initMixin (Vue: Class<Component>) {
     }
 
     if (vm.$options.el) {
-    // 挂载vm
+    // 如果设置了el会在初始化后就进行挂载
       vm.$mount(vm.$options.el)
     }
   }
 }
 
-//直接初始化内部组件的选项
+//直接合并组件的选项，从父vnode的componentOptions里获取选项数据
+// 这种情况一般是组件节点在创建vm的时候，对于vm选项合并的优化，因为合并太费时间。而组件节点创建vm是一个统一的过程，不需要特殊处理
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.

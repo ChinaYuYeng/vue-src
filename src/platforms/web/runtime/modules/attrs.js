@@ -31,7 +31,7 @@ function updateAttrs (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   const oldAttrs = oldVnode.data.attrs || {}
   let attrs: any = vnode.data.attrs || {}
   // clone observed objects, as the user probably wants to mutate it
-  // for in 拷贝
+  // for in 拷贝，无法拷贝属性描述符，相当于去掉属性劫持，就算被修改也不会触发动作。为什么会被改？
   if (isDef(attrs.__ob__)) {
     attrs = vnode.data.attrs = extend({}, attrs)
   }

@@ -65,7 +65,8 @@ export function eventsMixin (Vue: Class<Component>) {
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
-      // 用一个标记来代替查询是否有钩子事件
+      // 用一个标记来代替对象哈希查找（就是通过vm._events[event]查找），2
+      // 使用$on或者$once等在运行时注册的生命周期钩子函数
       if (hookRE.test(event)) {
         vm._hasHookEvent = true
       }

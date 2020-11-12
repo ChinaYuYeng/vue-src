@@ -66,7 +66,7 @@ export function resolveAsyncComponent (
     // 没有状态的factory，或者第一次会在这里初始化异步加载逻辑
     // 一个工厂函数可以关联多个vm实例
     const contexts = factory.contexts = [context]
-    // 设置同步
+    // 设置同步，设置同步的目的是防止factory内部不是一个异步获取的过程，是一个同步直接调用resolve()给与一个预先加载或者定义好的组件（如果返回一个promise就一定不是同步的，因为promise的then回调会被推入到microtask），那么就没必要强制刷新
     let sync = true
 
     // 刷新所有的vm实例回调函数
@@ -79,6 +79,7 @@ export function resolveAsyncComponent (
     // 加载成功函数
     const resolve = once((res: Object | Class<Component>) => {
       // cache resolved
+      // 确保获得构造函数
       factory.resolved = ensureCtor(res, baseCtor)
       // invoke callbacks only if this is not a synchronous resolve
       // (async resolves are shimmed as synchronous during SSR)
@@ -112,8 +113,7 @@ export function resolveAsyncComponent (
           res.then(resolve, reject)
         }
       } else if (isDef(res.component) && typeof res.component.then === 'function') {
-        // 返回一个 res有各种组件的普通对象
-        // component是promise
+        // 返回一个 res有各种组件的普通对象，唯独 component是promise 用于加载远程组件
         /**
          * res:{
           component:'',
@@ -167,7 +167,7 @@ export function resolveAsyncComponent (
     // 设置异步
     sync = false
     // return in case resolved synchronously
-    // 返回的组件可能undefined
+    // 返回的组件 可能undefined
     return factory.loading
       ? factory.loadingComp
       : factory.resolved

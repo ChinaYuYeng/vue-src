@@ -46,6 +46,7 @@ export function createElement (
 }
 
 // 实际创建vnode的方法
+// 在vm的render方法中使用这个方法创建vnode，普通节点或者组件节点（组件节点仅仅创建不会进一步创建vm，在patch才会创建vm）
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,

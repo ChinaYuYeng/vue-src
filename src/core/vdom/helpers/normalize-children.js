@@ -19,6 +19,7 @@ import { isFalse, isTrue, isDef, isUndef, isPrimitive } from 'shared/util'
 export function simpleNormalizeChildren (children: any) {
   for (let i = 0; i < children.length; i++) {
     if (Array.isArray(children[i])) {
+      // 只要出现一个内嵌数据就扁平化
       return Array.prototype.concat.apply([], children)
     }
   }
@@ -42,7 +43,7 @@ function isTextNode (node): boolean {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
 
-// 整理用户提供的children 为一个一维数组并且元素全是vnode
+// 整理用户提供的children 扁平化为一个一维数组并且元素全部是vnode
 function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNode> {
   const res = []
   let i, c, lastIndex, last
@@ -56,6 +57,7 @@ function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNo
       if (c.length > 0) {
         c = normalizeArrayChildren(c, `${nestedIndex || ''}_${i}`)
         // merge adjacent text nodes
+        // 合并相邻的文本vnode，没必要分开
         if (isTextNode(c[0]) && isTextNode(last)) {
           res[lastIndex] = createTextVNode(last.text + (c[0]: any).text)
           c.shift()
@@ -76,7 +78,7 @@ function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNo
       }
     } else {  // vnode类型
       if (isTextNode(c) && isTextNode(last)) {
-        // 2个都是文本vnode
+        // 2个都是文本vnode，一样要合并
         // merge adjacent text nodes
         res[lastIndex] = createTextVNode(last.text + c.text)
       } else {

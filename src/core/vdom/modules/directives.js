@@ -19,6 +19,7 @@ function updateDirectives (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   }
 }
 
+// 指令执行，在patch的过程中执行
 function _update (oldVnode, vnode) {
   const isCreate = oldVnode === emptyNode
   const isDestroy = vnode === emptyNode
@@ -89,6 +90,7 @@ function _update (oldVnode, vnode) {
 
 const emptyModifiers = Object.create(null)
 
+// 获得指令定义
 function normalizeDirectives (
   dirs: ?Array<VNodeDirective>,
   vm: Component

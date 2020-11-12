@@ -79,6 +79,7 @@ function genWeexHandler (params: Array<any>, handlerCode: string) {
     '}'
 }
 
+// 生成on,或者nativeOn中的事件代码字符串
 function genHandler (
   name: string,
   handler: ASTElementHandler | Array<ASTElementHandler>

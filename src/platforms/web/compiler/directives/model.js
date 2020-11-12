@@ -11,7 +11,7 @@ let warn
 export const RANGE_TOKEN = '__r'
 export const CHECKBOX_RADIO_TOKEN = '__c'
 
-// 处理v-model指令,使其转换成domProp,和event
+// 处理v-model指令,使其转换成domProp,和event2部分代码
 export default function model (
   el: ASTElement,
   dir: ASTDirective,
@@ -75,25 +75,27 @@ function genCheckboxModel (
   const trueValueBinding = getBindingAttr(el, 'true-value') || 'true'
   const falseValueBinding = getBindingAttr(el, 'false-value') || 'false'
   // 操作dom的checked属性进行勾选
+  // checkoutbox的v-model可以是一个数组 v-model = [1,2,3] ，这里可以看出如果是一个数组就判断是否包含在数组中来判断是否勾选
   addProp(el, 'checked',
     `Array.isArray(${value})` +
     `?_i(${value},${valueBinding})>-1` + (
       trueValueBinding === 'true'
         ? `:(${value})`
-        : `:_q(${value},${trueValueBinding})`
+        : `:_q(${value},${trueValueBinding})` //trueValueBinding === true 要转换成true或者false，不能是别的值
     )
   )
   // 添加change事件监听checked的变化
+  // 如果v-model的值是一个数组，就自动把:value的值concat到数组中
   addHandler(el, 'change',
-    `var $$a=${value},` +
-        '$$el=$event.target,' +
-        `$$c=$$el.checked?(${trueValueBinding}):(${falseValueBinding});` +
-    'if(Array.isArray($$a)){' +
+    `var $$a=${value},` +  //v-model指令对应的变量，可以是一个值，也可以是一个数组
+        '$$el=$event.target,' + //目标dom
+        `$$c=$$el.checked?(${trueValueBinding}):(${falseValueBinding});` + //是否勾选，true或者false
+    'if(Array.isArray($$a)){' + 
       `var $$v=${number ? '_n(' + valueBinding + ')' : valueBinding},` +
-          '$$i=_i($$a,$$v);' +
-      `if($$el.checked){$$i<0&&(${genAssignmentCode(value, '$$a.concat([$$v])')})}` +
-      `else{$$i>-1&&(${genAssignmentCode(value, '$$a.slice(0,$$i).concat($$a.slice($$i+1))')})}` +
-    `}else{${genAssignmentCode(value, '$$c')}}`,
+          '$$i=_i($$a,$$v);' +//如果是数组判断:value的值（这里看到如果是数组，得给:value设置个值，否则就是undefined了）是否在数组中
+      `if($$el.checked){$$i<0&&(${genAssignmentCode(value, '$$a.concat([$$v])')})}` + //如果勾选就把value的值concat到数组中
+      `else{$$i>-1&&(${genAssignmentCode(value, '$$a.slice(0,$$i).concat($$a.slice($$i+1))')})}` + //相反就删除
+    `}else{${genAssignmentCode(value, '$$c')}}`, //非数组直接赋值
     null, true
   )
 }
@@ -109,7 +111,7 @@ function genRadioModel (
   valueBinding = number ? `_n(${valueBinding})` : valueBinding
   // 添加el,domProp操作
   addProp(el, 'checked', `_q(${value},${valueBinding})`)
-  // 添加change事件
+  // 添加change事件。value是指令的值，valueBinding是给这个标签设置了:value的值
   addHandler(el, 'change', genAssignmentCode(value, valueBinding), null, true)
 }
 

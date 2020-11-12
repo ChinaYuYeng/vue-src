@@ -68,7 +68,7 @@ const componentVNodeHooks = {
     }
   },
 
-  // 更新旧节点的vm
+  // 更新组件节点内部对应的vm
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     // 这个component vnode对应的vm。也等同于vnode下的child属性
@@ -120,7 +120,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
-// 创建自定义组件vnode，不创建组件内节点。当patch后发现是个组件节点，才会进一步创建vm
+// 创建自定义组件vnode，不创建组件内节点。当patch后发现是个组件节点，才会进一步创建vm，重新开启一个vm创建过程
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -156,8 +156,10 @@ export function createComponent (
   // 异步获得组件构造函数，或者组件定义选项
   let asyncFactory
   if (isUndef(Ctor.cid)) {
+    // Ctor在这里可能是返回一个组件的方法，可能是异步或者同步的返回
     asyncFactory = Ctor
     // 根据异步函数获得组件构造方法，如果没有任何构造方法返回，就创建一个异步组件的vnode占位
+    // vue-router是使用异步组件的典型案例，但不是用了vue的异步组件逻辑，但是类似，为了控制路由重写了
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context)
     if (Ctor === undefined) {
       // return a placeholder node for async component, which is rendered
@@ -183,7 +185,7 @@ export function createComponent (
 
   // transform component v-model data into props & events
   // 转换v-model，组件vnode有效
-  // 这个选项在官网jsx示例中并没有说明v-model可以这样配置
+  // 这个选项在官网jsx示例中并没有说明，可以在jsx中v-model可以这样配置
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
@@ -201,10 +203,11 @@ export function createComponent (
 
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
+  // listeners是组件特有的，在vm初始化的时候用于建立vue自己的事件体系
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
-  // 在更新组件和非组件的事件时统一用的是on，nativeon（组件vnode才有的属性，非组件有这个属性也是被忽略的）只是临时工，这个逻辑参看patch，invokeCreateHooks方法
+  // 在更新组件和非组件的dom事件时统一用的是on的内容定义，nativeon（组件vnode才有的属性，非组件有这个属性也是被忽略的）只是临时工，这个逻辑参看patch，invokeCreateHooks方法
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
@@ -228,7 +231,7 @@ export function createComponent (
   // return a placeholder vnode
   const name = Ctor.options.name || tag
   // 创建一个组件vnode
-  // 组件elm在vnode穿件时不赋值
+  // 组件elm在vnode创建时不赋值
   // 和非组件vnode的创建方式，区别非常明显
   /**
    *  vnode = new VNode(
@@ -240,6 +243,7 @@ export function createComponent (
       data没有区别，data几乎是创建vnode的数据仓库，data参与vnode的整个生命过程
    */
 
+  //  组件vnode的tag会重新命名，真实的tag会存入componentOptions
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
@@ -280,7 +284,7 @@ export function createComponentInstanceForVnode (
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
   // new component的构造方法
-  // componentOptions里面已经有一些vm需要的选项了，为什么不直接使用，因为vm实例化过程有设置这些选项的动作，不需要重复
+  // componentOptions会在vm的init中合并到options中
   return new vnode.componentOptions.Ctor(options)
 }
 
@@ -296,6 +300,7 @@ function installComponentHooks (data: VNodeData) {
 // transform component v-model info (value and callback) into
 // prop and event handler respectively.
 // 分拆v-mode分别给props赋值，还有添加事件
+// 一般用于组件
 function transformModel (options, data: any) {
   // model选项配置 默认是value和input
   const prop = (options.model && options.model.prop) || 'value'

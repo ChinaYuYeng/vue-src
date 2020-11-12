@@ -19,7 +19,7 @@ if (isIE9) {
   })
 }
 
-// web环境下的v-model指令
+// 运行时下的v-model，主要处理在运行时需要动态加工的元素标签，是一个辅助补充功能。大部分的标签元素是在编译的时候就把v-model的逻辑拆分好了
 const directive = {
   inserted (el, binding, vnode, oldVnode) {
     if (vnode.tag === 'select') {
@@ -139,7 +139,7 @@ function onCompositionEnd (e) {
   trigger(e.target, 'input')
 }
 
-// 触发事件
+// 手动触发指定原生事件
 function trigger (el, type) {
   const e = document.createEvent('HTMLEvents')
   e.initEvent(type, true, true)

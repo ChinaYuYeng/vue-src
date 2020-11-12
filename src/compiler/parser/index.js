@@ -568,6 +568,7 @@ function  processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true
       // modifiers
+      // 获得指令:name.xx.xx，.xx部分
       modifiers = parseModifiers(name)
       if (modifiers) {
         name = name.replace(modifierRE, '')
@@ -597,7 +598,7 @@ function  processAttrs (el) {
             )
           }
         }
-        // 添加到attr还是prop原生dom属性（是组件一定添加到attr），否则是否是平台必须到prop
+        // 添加到attr还是prop（这里是dom属性），组件一定添加到attr
         if (isProp || (
           !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
         )) {

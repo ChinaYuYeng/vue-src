@@ -2,6 +2,7 @@
 
 /**
  * Cross-platform code generation for component v-model
+ * 组件v-model代码生成。v-model代码有3处，这里是编译阶段通用，还有web编译阶段，web运行阶段，这3处共同完成了v-model在所有元素下的处理
  */
 export function genComponentModel (
   el: ASTElement,
@@ -23,6 +24,7 @@ export function genComponentModel (
   }
   const assignment = genAssignmentCode(value, valueExpression)
 
+  // 组件特有的v-model选项
   el.model = {
     value: `(${value})`,
     expression: `"${value}"`,
