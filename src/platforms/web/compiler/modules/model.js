@@ -25,8 +25,10 @@ import {
 
 // 处理input v-model指令,type是动态的情况下,最终生成一个根据type加以判断的v-if指令条件内容
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
+  // 必须是input
   if (el.tag === 'input') {
     const map = el.attrsMap
+    // 必须是有v-model指令
     if (!map['v-model']) {
       return
     }
@@ -36,6 +38,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
       typeBinding = getBindingAttr(el, 'type')
     }
     if (!map.type && !typeBinding && map['v-bind']) {
+      // 通过v-bind={}批量传递参数
       typeBinding = `(${map['v-bind']}).type`
     }
 
@@ -86,6 +89,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
   }
 }
 
+// 复制ast节点
 function cloneASTElement (el) {
   return createASTElement(el.tag, el.attrsList.slice(), el.parent)
 }
