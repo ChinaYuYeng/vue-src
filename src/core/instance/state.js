@@ -69,7 +69,7 @@ function initProps (vm: Component, propsOptions: Object) {
   // cache prop keys so that future props updates can iterate using Array
   // instead of dynamic object key enumeration.
   const keys = vm.$options._propKeys = []
-  const isRoot = !vm.$parent
+  const isRoot = !vm.$parent //没有$parent视为根节点
   // root instance props should be converted
   // 根节点的props是允许修改的，this.xx = yy。可以当作vm自有的属性一样，同时下方的警告会被关闭
   if (!isRoot) {
@@ -112,6 +112,7 @@ function initProps (vm: Component, propsOptions: Object) {
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 把props定义到this下，方便访问
     // 在extend添加的选项中的props已经被代理到了_props所有不需要在代理了
     if (!(key in vm)) {
       // 通过vm代理访问
