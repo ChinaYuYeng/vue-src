@@ -23,6 +23,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
   // 建立缓存
   const cache = Object.create(null)
 
+  // 把编译结果转化成渲染方法
   return function compileToFunctions (
     template: string,
     options?: CompilerOptions,

@@ -4,6 +4,7 @@ import { dirRE, onRE } from './parser/index'
 
 // these keywords should not appear inside expressions, but operators like
 // typeof, instanceof and in are allowed
+// 以下关键字都是不允许的，除了一些特殊的
 const prohibitedKeywordRE = new RegExp('\\b' + (
   'do,if,for,let,new,try,var,case,else,with,await,break,catch,class,const,' +
   'super,throw,while,yield,delete,export,import,return,switch,default,' +
@@ -11,11 +12,13 @@ const prohibitedKeywordRE = new RegExp('\\b' + (
 ).split(',').join('\\b|\\b') + '\\b')
 
 // these unary operators should not be used as property/method names
+// 以下一元操作符不应该成为属性名或者方法名
 const unaryOperatorsRE = new RegExp('\\b' + (
   'delete,typeof,void'
 ).split(',').join('\\s*\\([^\\)]*\\)|\\b') + '\\s*\\([^\\)]*\\)')
 
 // strip strings in expressions
+// 匹配字符串中的字符串的各种形式包括'' "" ``
 const stripStringRE = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}(?:[^`\\]|\\.)*`|`(?:[^`\\]|\\.)*`/g
 
 // detect problematic expressions in a template
@@ -27,6 +30,7 @@ export function detectErrors (ast: ?ASTNode): Array<string> {
   return errors
 }
 
+// 检查astnode是否有预先定义好的规则上的错误
 function checkNode (node: ASTNode, errors: Array<string>) {
   if (node.type === 1) {
     for (const name in node.attrsMap) {
@@ -87,6 +91,7 @@ function checkIdentifier (
   }
 }
 
+// 表达式错误检查
 function checkExpression (exp: string, text: string, errors: Array<string>) {
   try {
     new Function(`return ${exp}`)

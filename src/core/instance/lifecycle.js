@@ -85,6 +85,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
       )
       // no need for the ref nodes after initial patch
       // this prevents keeping a detached DOM tree in memory (#5851)
+      // 清理没用的dom引用，便于内存释放
       vm.$options._parentElm = vm.$options._refElm = null
     } else {
       // updates
@@ -97,6 +98,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
       prevEl.__vue__ = null
     }
     if (vm.$el) {
+      // 让原生dom持有vm，可以判断vm当前起效的dom
       vm.$el.__vue__ = vm
     }
     // if parent is an HOC, update its $el as well
@@ -118,7 +120,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 
   // 实例销毁，资源释放
-  // 主要时释放vm内部的资源和外部关系，vm对应的父vnode的外部关系
+  // 主要时释放vm内部的资源和外部关系，以及vm对应的父vnode的外部关系
+  //通过patch递归销毁vnode对应的整个子树
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     if (vm._isBeingDestroyed) {
@@ -127,6 +130,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
     // remove self from parent
+    // 解除当前vm和父vm的关系
     const parent = vm.$parent
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
       remove(parent.$children, vm)
@@ -134,6 +138,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // teardown watchers
     // 关闭所有的watch
     if (vm._watcher) {
+      // 这个是渲染watcher
       vm._watcher.teardown()
     }
     let i = vm._watchers.length
@@ -149,7 +154,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // call the last hook...
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
-    // 通过patch销毁旧的node
+    // 通过patch递归销毁vm的根vnode对应的整个子树
     vm.__patch__(vm._vnode, null)
     // fire destroyed hook
     callHook(vm, 'destroyed')
@@ -157,11 +162,12 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // 关闭所有的事件监听
     vm.$off()
     // remove __vue__ reference
+    // 释放dom对vm的引用
     if (vm.$el) {
       vm.$el.__vue__ = null
     }
     // release circular reference (#6759)
-    // 释放vm的父node对parentNode的引用
+    // 释放vm的Vnode对parentNode的引用
     if (vm.$vnode) {
       vm.$vnode.parent = null
     }

@@ -8,6 +8,7 @@ import { createCompileToFunctionFn } from './to-function'
 export function createCompilerCreator (baseCompile: Function): Function {
   // 生成compile和compileToFunctions（这个由createCompileToFunctionFn生成）
   // 这个方法也是返回2个闭包引用参数，没有其他逻辑
+  // baseOptions和平台相关，在platform中
   return function createCompiler (baseOptions: CompilerOptions) {
     /**
      * 1、合并基础配置选项与传入的编译选项，生成 finalOptions。

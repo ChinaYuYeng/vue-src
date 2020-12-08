@@ -42,6 +42,7 @@ export function initMixin (Vue: Class<Component>) {
       initInternalComponent(vm, options)
     } else {
       // 使用对应的策略合并各个vue选项
+      // 这个else分支只是针对 new Vue()的情况，因此这里没有initInternalComponent里面设置的_parent等属性
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor), //收集构造方法上所有opations，合成最终的opations，包含extend方法扩展的opations
         options || {}, //实例化时传入的opations

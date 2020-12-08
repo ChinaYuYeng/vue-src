@@ -17,6 +17,7 @@ import {
   defineReactive
 } from '../util/index'
 
+// 添加vue构造方法的静态方法，也就是全局api
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   // 全局配置文件

@@ -7,6 +7,7 @@ export function baseWarn (msg: string) {
   console.error(`[Vue compiler]: ${msg}`)
 }
 
+// 获得指定key在各个某块下的方法
 export function pluckModuleFunction<F: Function> (
   modules: ?Array<Object>,
   key: string
@@ -44,13 +45,13 @@ export function addDirective (
   el.plain = false
 }
 
-// 给ast事件选项添加事件
+// 解析v-on绑定的事件，给ast事件选项添加事件
 export function addHandler (
   el: ASTElement,
   name: string,
   value: string,
   modifiers: ?ASTModifiers,
-  important?: boolean,
+  important?: boolean,//优先级
   warn?: Function
 ) {
   modifiers = modifiers || emptyObject
@@ -148,7 +149,7 @@ export function getBindingAttr (
 // doesn't get processed by processAttrs.
 // By default it does NOT remove it from the map (attrsMap) because the map is
 // needed during codegen.
-// 获得属性值的同时删除属性列表元素，少数删除属性map
+// 获得属性值（静态或者动态）的同时删除属性列表元素，少数删除属性map
 export function getAndRemoveAttr (
   el: ASTElement,
   name: string,

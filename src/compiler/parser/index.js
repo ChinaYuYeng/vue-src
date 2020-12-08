@@ -72,6 +72,7 @@ export function parse (
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
 
+  // 以下都是一些处理astnode的属性的方法
   transforms = pluckModuleFunction(options.modules, 'transformNode')
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
@@ -221,6 +222,7 @@ export function parse (
       }
       if (currentParent && !element.forbidden) {
         if (element.elseif || element.else) {
+          // 把if-else ast加到之前节点的条件属性中
           processIfConditions(element, currentParent)
         } else if (element.slotScope) { // scoped slot
           // slotscope的ast处理，slotscope是加到该个ast的父节点上的
@@ -243,6 +245,7 @@ export function parse (
       }
     },
 
+    // 结束当前标签
     end () {
       // 删除空白节点，同时切换父节点
       // remove trailing whitespace
@@ -303,6 +306,7 @@ export function parse (
         }
       }
     },
+    // 处理注释节点
     comment (text: string) {
       // 存储注释子节点
       currentParent.children.push({
@@ -402,14 +406,14 @@ type ForParseResult = {
   iterator2?: string;
 };
 
-// 解析v-for
+// 解析v-for表达式
 export function parseFor (exp: string): ?ForParseResult {
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
   const res = {}
   res.for = inMatch[2].trim()
-  const alias = inMatch[1].trim().replace(stripParensRE, '')
-  const iteratorMatch = alias.match(forIteratorRE)
+  const alias = inMatch[1].trim().replace(stripParensRE, '') //去（item，name,index）括号
+  const iteratorMatch = alias.match(forIteratorRE)//匹配（item，name，index）后两个，双迭代主要用于对象的遍历，数组只要一个迭代就够了
   if (iteratorMatch) {
     res.alias = alias.replace(forIteratorRE, '')
     res.iterator1 = iteratorMatch[1].trim()
@@ -432,6 +436,7 @@ function processIf (el) {
       block: el
     })
   } else {
+    // v-else 和v-else-if都会在最后建立上下关系时进行分配，没有这个2个会被分配到父el的children中
     if (getAndRemoveAttr(el, 'v-else') != null) {
       el.else = true
     }
@@ -442,6 +447,7 @@ function processIf (el) {
   }
 }
 
+// 处理之前兄弟节点是否有v-if,则自己是else-if
 function processIfConditions (el, parent) {
   const prev = findPrevElement(parent.children)
   if (prev && prev.if) {
@@ -457,6 +463,7 @@ function processIfConditions (el, parent) {
   }
 }
 
+// 寻找之前的type为1的兄弟节点
 function findPrevElement (children: Array<any>): ASTElement | void {
   let i = children.length
   while (i--) {
@@ -474,6 +481,7 @@ function findPrevElement (children: Array<any>): ASTElement | void {
   }
 }
 
+// v-if条件添加
 export function addIfCondition (el: ASTElement, condition: ASTIfCondition) {
   if (!el.ifConditions) {
     el.ifConditions = []
@@ -489,6 +497,7 @@ function processOnce (el) {
   }
 }
 
+// 解析<slot>el
 function processSlot (el) {
   if (el.tag === 'slot') {
     // 定义slot
@@ -556,7 +565,7 @@ function processComponent (el) {
   }
 }
 
-// 处理剩余属性，动态属性，静态属性，并且分类到attr或者prop
+// 处理剩余属性，动态属性，静态属性，并且分类到attr或者domprop
 function  processAttrs (el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, isProp
@@ -590,7 +599,7 @@ function  processAttrs (el) {
             name = camelize(name)
           }
           if (modifiers.sync) {
-            // .sync 修饰符就是个vm添加一个事件名是update：xx的事件，回调方法就是调用￥set更新来自子组件的￥emit（update:xxx,value）
+            // .sync 修饰符就是个vm添加一个事件名是update：xx的事件(类似$emit（update:xxx,value）的处理方式)，回调方法的逻辑就是父组件调用$set更新来自子组件的值
             addHandler(
               el,
               `update:${camelize(name)}`,
@@ -612,7 +621,7 @@ function  processAttrs (el) {
         // 添加事件
         addHandler(el, name, value, modifiers, false, warn)
       } else { // normal directives
-        // 其他指令包含v-model
+        // 除上述外其他指令包含v-model
         // 指令名
         name = name.replace(dirRE, '')
         // parse arg
@@ -622,7 +631,7 @@ function  processAttrs (el) {
         if (arg) {
           name = name.slice(0, -(arg.length + 1))
         }
-        // 添加自定义指令
+        // 添加指令（自定义的，或者系统的比如v-model）
         addDirective(el, name, rawName, value, arg, modifiers)
         if (process.env.NODE_ENV !== 'production' && name === 'model') {
           checkForAliasModel(el, value)
@@ -642,6 +651,7 @@ function  processAttrs (el) {
           )
         }
       }
+      // 其他静态的也添加到这
       addAttr(el, name, JSON.stringify(value))
       // #6887 firefox doesn't update muted state if set via attribute
       // even immediately after element creation
@@ -675,6 +685,7 @@ function parseModifiers (name: string): Object | void {
   }
 }
 
+// 把数组变成map结构
 function makeAttrsMap (attrs: Array<Object>): Object {
   const map = {}
   for (let i = 0, l = attrs.length; i < l; i++) {

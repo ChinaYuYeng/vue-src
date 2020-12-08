@@ -95,7 +95,7 @@ function initProps (vm: Component, propsOptions: Object) {
       }
       defineReactive(props, key, value, () => {
         // 自定义setter警告，在组件更新props时不会警告（因为组件更新时会设置最新的propsdata来触发渲染或者别的watch），在当前vm是根vm是不会警告，
-        // isRoot = !vm.$parent 可以把props当成data中的属性一样使用。
+        // isRoot = !vm.$parent  root可以把props当成data中的属性一样使用。
         if (vm.$parent && !isUpdatingChildComponent) {
           warn(
             `Avoid mutating a prop directly since the value will be ` +

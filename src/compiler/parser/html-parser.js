@@ -254,7 +254,7 @@ export function parseHTML (html, options) {
 
     const l = match.attrs.length
     const attrs = new Array(l)
-    // 把属性正则match结果转换到attrs属性对象
+    // 把属性正则match结果整理后放入attrs属性列表中，给到后续属性解析
     for (let i = 0; i < l; i++) {
       // 这个对象是正则match数组，里面有3个捕获分组 (name) (=) (value)
       const args = match.attrs[i]

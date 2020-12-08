@@ -233,7 +233,7 @@ export function createPatchFunction (backend) {
     let i = vnode.data
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
-      // 这里是创建vm，同时渲染patch后组件挂载（￥el赋值）
+      // 这里是创建vm，同时渲染patch后组件挂载（$el赋值）
       if (isDef(i = i.hook) && isDef(i = i.init)) {
         i(vnode, false /* hydrating */, parentElm, refElm)
       }
@@ -377,15 +377,17 @@ export function createPatchFunction (backend) {
     }
   }
 
-  // 销毁vnode，主要调用组件vnode destroy钩子 和 处理dom相关的destroy钩子
+  // 销毁vnode，主要调用组件vnode destroy钩子 和 处理dom相关的destroy操作
+  // 销毁当前vnode对应的整棵子树
   function invokeDestroyHook (vnode) {
     let i, j
     const data = vnode.data
     if (isDef(data)) {
-      if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)      // 执行component vnode带有的生命周期函数，destroy钩子，
-      for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)  //执行dom属性相关destroy钩子，主要是移除指令，ref
+      // 如果是组件vnode会重复整个销毁过程
+      if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)      // 执行component vnode带有的生命周期函数，destroy钩子，本质还是组件就是调用$destroy()
+      for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)  //执行dom相关destroy操作，主要是移除指令，ref在refs中的引用
     }
-    // 递归对子节点逐一操作
+    // 递归对子节点（都是普通vnode）逐一操作
     if (isDef(i = vnode.children)) {
       for (j = 0; j < vnode.children.length; ++j) {
         invokeDestroyHook(vnode.children[j])
@@ -394,13 +396,15 @@ export function createPatchFunction (backend) {
   }
 
   // 从父节点删除旧的节点，并且调用destroy钩子
+  // $destroy的使用方式官方介绍，尽量不用，可以通过v-if等，其实目的是要使用内部预先的destroy逻辑来移除组件，从而避免不必要的麻烦（清理不到位）
+  // 在patch中子节点不同触发了这个方法，以此触发了vm的$destroy方法的递归调用，逐步销毁vm组件
   function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
       if (isDef(ch)) {
         if (isDef(ch.tag)) {
           removeAndInvokeRemoveHook(ch) //这里会删除旧的dom
-          invokeDestroyHook(ch)
+          invokeDestroyHook(ch) //这个方法（内部调用就是vm的$destroy方法）只是清理对外关系和释放内部资源，不会删除dom，因此如果需要主动调用这个方法时，还要手动删除dom（从dom树中移除）
         } else { // Text node
           removeNode(ch.elm)
         }
@@ -837,7 +841,7 @@ export function createPatchFunction (backend) {
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
       isInitialPatch = true
-      // 直接创建新的dom节点或者componentvm
+      // 直接创建新的dom节点或者vm
       createElm(vnode, insertedVnodeQueue, parentElm, refElm)
     } else {
       // 2个节点都有

@@ -93,7 +93,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
 }
 
 // hoist static sub-trees out
-// 生成静态渲染方法字符串
+// 生成静态渲染节点方法字符串
 function genStatic (el: ASTElement, state: CodegenState): string {
   el.staticProcessed = true
   state.staticRenderFns.push(`with(this){return ${genElement(el, state)}}`)
