@@ -44,9 +44,11 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
+    // 数组和对象特有的属性，主要作用还是持有dep。和属性持有dep的方式不同，属性主要通过闭包的形式持有
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
-    	//监听数组，更换poto
+      //监听数组，更换当前数组实例的__proto__属性，这样做的好处是只针对被劫持的数组入侵原型，而不影响一般数组。
+      // 没有__proto__就方法到实例自身
       const augment = hasProto
         ? protoAugment
         : copyAugment
@@ -73,7 +75,7 @@ export class Observer {
 
   /**
    * Observe a list of Array items.
-   * 遍历数组每个元素，每个元素又从头开始
+   * 遍历数组每个元素，每个元素又逐一进行劫持
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -111,7 +113,8 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
- * 给对象创建观察者，或者直接返回已有的
+ * 给对象或者数组创建观察者，或者直接返回已有的
+ * 这个方法是主要入口
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   //必须是object或者array，同时不是vnode
@@ -153,7 +156,7 @@ export function defineReactive (
 ) {
   const dep = new Dep() //每个array，obj都持有这个
 
-  const property = Object.getOwnPropertyDescriptor(obj, key) //看看是不是原先就有属性描述符定义，用于使用用户的逻辑来get，set值
+  const property = Object.getOwnPropertyDescriptor(obj, key) //看看是不是原先就有属性描述符定义，使用用户的逻辑来设置get，set值
   if (property && property.configurable === false) {
     //从这里看，我可以设置不可配置属性来阻止属性响应式
     return
@@ -167,15 +170,16 @@ export function defineReactive (
   }
   const setter = property && property.set
 
-	//递归子对象
+	//递归劫持属性值
   let childOb = !shallow && observe(val)
   
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
-      //使用原来的getter获取值，没有就是val
+      //使用用户定义的getter获取值，没有就是val
       const value = getter ? getter.call(obj) : val
+      // dep.target是当前栈顶的渲染watcher，类似上下文的概念
       if (Dep.target) {
         dep.depend() //当前属性和渲染watch绑定了关系
         if (childOb) {
