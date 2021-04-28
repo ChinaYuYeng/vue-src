@@ -48,7 +48,7 @@ const modifierCode: { [key: string]: string } = {
   right: genGuard(`'button' in $event && $event.button !== 2`)
 }
 
-// 生成data事件数据
+// 生成h函数中data的事件数据
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean,

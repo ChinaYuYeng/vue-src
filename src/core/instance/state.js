@@ -164,12 +164,13 @@ function initData (vm: Component) {
   }
   // observe data
   // 作为rootdata劫持属性
+  // 直到这里data才有了响应式的能力
   observe(data, true /* asRootData */)
 }
 
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
-  // 把当前的watch设置为undefined，阻止搜集依赖,data方法执行时，可能会使用到prop，这样回触发依赖搜集
+  // 把当前的watch设置为undefined，阻止搜集依赖,data方法执行时，可能会使用到prop，这样会触发依赖搜集
   pushTarget()
   try {
     // data方法执行的上下文是vm

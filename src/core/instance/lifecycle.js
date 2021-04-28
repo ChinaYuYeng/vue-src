@@ -313,8 +313,9 @@ export function updateChildComponent (
   // resolve slots + force update if has children
   // 更新子节点
   if (hasChildren) {
-    // 更新slot，强制刷新
+    // 更新slot，
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
+    // 强制刷新vm， 更新视图
     vm.$forceUpdate()
   }
 

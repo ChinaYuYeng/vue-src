@@ -29,6 +29,7 @@ const argRE = /:(.*)$/
 export const bindRE = /^:|^v-bind:/
 const modifierRE = /\.[^.]+/g
 
+// 创建一个具有decode能力的缓存池
 const decodeHTMLCached = cached(he.decode)
 
 // configurable state

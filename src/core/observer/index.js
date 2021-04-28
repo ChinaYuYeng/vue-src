@@ -48,11 +48,12 @@ export class Observer {
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       //监听数组，更换当前数组实例的__proto__属性，这样做的好处是只针对被劫持的数组入侵原型，而不影响一般数组。
-      // 没有__proto__就方法到实例自身
+      // 没有__proto__属性就复制方法到实例自身
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
+      // 遍历劫持数组的每个元素
       this.observeArray(value)
     } else {
     	//遍历对象监听数据
@@ -170,7 +171,7 @@ export function defineReactive (
   }
   const setter = property && property.set
 
-	//递归劫持属性值
+	//递归劫持属性值（只有数组和对象才行）
   let childOb = !shallow && observe(val)
   
   Object.defineProperty(obj, key, {
@@ -183,11 +184,13 @@ export function defineReactive (
       if (Dep.target) {
         dep.depend() //当前属性和渲染watch绑定了关系
         if (childOb) {
-          // 收集当前属性值（如果可以被劫持）的依赖
+          // 收集当前属性值（如果可以被劫持）的依赖，这个依赖是针对对象和数组本身的，
+          // 收集当前属性的依赖的同时会收集属性值（对象或者数组）的依赖，收集的目的是对象和数组被更改是触发，比如对象新增一个属性或者删除，数组的指定方法执行，触发的是这个依赖
           childOb.dep.depend()
           if (Array.isArray(value)) {
-            // 如果是数组立马收集所有的子元素，但是对象却不着急，因为对象的子属性可以自主触发getter方法收集依赖
-          	//这里是收集数组元素的依赖
+            //如果是数组立马收集所有的子元素的dep
+            //收集数组 [].__ob__.dep , 如果数组中有元素也是数组，那么会继续递归收集，但是元素是对象的话，只是收集对象本身的[].__ob__.dep 
+            //但是对象却不着急，因为对象的子属性可以自主触发getter方法收集依赖
             dependArray(value)
           }
         }

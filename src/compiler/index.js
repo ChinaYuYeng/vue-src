@@ -16,6 +16,7 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   // 这个options是finaloptions
   const ast = parse(template.trim(), options)
   if (options.optimize !== false) {
+    // 优化ast树，主要是标记静态节点
     optimize(ast, options)
   }
   // 生成render渲染函数字符串

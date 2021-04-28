@@ -232,6 +232,7 @@ export function createPatchFunction (backend) {
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
+      // 判断是否启用了keep-alive组件，并且当前vnode是被keepalive缓存的
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       // 这里是创建vm，同时渲染patch后组件挂载（$el赋值）
       if (isDef(i = i.hook) && isDef(i = i.init)) {
@@ -582,6 +583,7 @@ export function createPatchFunction (backend) {
       i(oldVnode, vnode)
     }
 
+    // children是普通vnode，组件vnode是child
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {

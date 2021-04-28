@@ -45,7 +45,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 /**
  * Helper that recursively merges two data objects together.
- * 以to为主，to有的不覆盖，to本身（原型不算）没有的合并进来
+ * 以to为主，to有的不覆盖但会递归（obj），to本身（原型不算）没有的合并进来
  * 合并data选项的具体方式
  */
 function mergeData (to: Object, from: ?Object): Object {
@@ -69,7 +69,7 @@ function mergeData (to: Object, from: ?Object): Object {
 
 /**
  * Data
- * data选项合并
+ * data，provide选项合并
  */
 export function mergeDataOrFn (
   parentVal: any,
@@ -248,6 +248,7 @@ strats.computed = function (
   if (childVal) extend(ret, childVal)
   return ret
 }
+/* provide的合并同data选项 */
 strats.provide = mergeDataOrFn
 
 /**

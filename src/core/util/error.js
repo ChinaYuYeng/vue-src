@@ -4,9 +4,11 @@ import config from '../config'
 import { warn } from './debug'
 import { inBrowser, inWeex } from './env'
 
+// 这个方法会配合try...catch...代码块分散到组件的各个细节中去，一旦catch到错误就会调用该方法，沿着组件往上报告
 export function handleError (err: Error, vm: any, info: string) {
   if (vm) {
     let cur = vm
+    // while是逐级寻找父级，并且调用父级的errorCaptured（如果有的话），如果父级的errorCaptured返回true的话，会阻止进一步的往上传递
     while ((cur = cur.$parent)) {
       const hooks = cur.$options.errorCaptured
       if (hooks) {

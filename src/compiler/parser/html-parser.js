@@ -119,9 +119,10 @@ export function parseHTML (html, options) {
         }
 
         // Start tag:
-        // 处理开始标签
+        // 处理开始标签，获得属性
         const startTagMatch = parseStartTag()
         if (startTagMatch) {
+          // 处理开始标签
           handleStartTag(startTagMatch)
           if (shouldIgnoreFirstNewline(lastTag, html)) {
             advance(1)
@@ -130,7 +131,7 @@ export function parseHTML (html, options) {
         }
       }
 
-      // 
+      // 截取文本
       let text, rest, next
       if (textEnd >= 0) {
         rest = html.slice(textEnd)
