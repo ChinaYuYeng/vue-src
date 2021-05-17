@@ -349,6 +349,7 @@ export function createPatchFunction (backend) {
   // set scope id attribute for scoped CSS.
   // this is implemented as a special case to avoid the overhead
   // of going through the normal attribute patching process.
+  //给组件中的vnode对应的dom加上组件预先设置（自动生成在options中）的scopedid作为其属性，css规则由postcss处理在加上scopedid
   function setScope (vnode) {
     let i
     if (isDef(i = vnode.fnScopeId)) {
@@ -755,6 +756,11 @@ export function createPatchFunction (backend) {
   // 返回这个patch方法
   // 第一次初始化页面的patch从根节点开始，到叶子节点率先完成patch过程，等所有的叶子节点patch完成，再到根节点patch完成，整个是一个递归过程。patch过程中会完成整个vnode节点树(每个组件vnode都会重复vm -> render -> patch -> el这个过程)，同时dom树.vm和dom都是递归顺序建立
   // 这也是为什么vm实例化后ref不一定有值，原因就是相对应的dom创建在vm之后
+  /**
+   * 组件vnode的dom建立和更新：
+   * 初次创建时组件vnode最开始的elem属性是空的，他是由vm初始化并patch结束后的返回值赋值给vm.$el,再由$el赋值给elem的
+   * 
+   * */ 
 /**
  * {
   // 和`v-bind:class`一样的 API
@@ -906,7 +912,7 @@ export function createPatchFunction (backend) {
         // update parent placeholder node element, recursively
         // 层层更新vnode上的parent，这些parent都是组件vnode，并且他们的dom指向都是一样的
         // 在创建一个新的dom后，以下代码就是添加dom的各种属性，以及父组件的状态，ref的指向
-        // 循环更新parent是因为dom更换了
+        // 新旧vnode不具备可复用（新的vnode发生了本质变化，比如说原先的vnode是一个注释节点只是占位的），在一个vm中父组件vnode.elm通过以下代码被更新，同时父组件的属性应用到dom
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
@@ -920,7 +926,7 @@ export function createPatchFunction (backend) {
             ancestor.elm = vnode.elm
             if (patchable) {
               for (let i = 0; i < cbs.create.length; ++i) {
-                // 添加父节点的属性，事件，ref等操作
+                // 把祖先节点的属性，事件，ref,transiton动画，style，class样式等附加到新的dom上
                 cbs.create[i](emptyNode, ancestor)
               }
               // #6513
@@ -954,8 +960,9 @@ export function createPatchFunction (backend) {
       }
     }
 
-    // 
+    // 延迟调用insertHook，insertedVnodeQueue是之前的组件在没有dom时暂存的hook，调用的hook中会触发组件mounted钩子
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
+    // 返回赋值到$el
     return vnode.elm
   }
 }

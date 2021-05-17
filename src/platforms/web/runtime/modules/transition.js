@@ -20,6 +20,7 @@ import {
   removeTransitionClass
 } from '../transition-util'
 
+// 进入动画
 export function enter (vnode: VNodeWithData, toggleDisplay: ?() => void) {
   const el: any = vnode.elm
 

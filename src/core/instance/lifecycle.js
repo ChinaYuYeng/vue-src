@@ -73,8 +73,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // initial render
-      // 第一次渲染没有之前的vnode，用el代替
-      // 第一次patch前￥el是空的，有可能是预设的el，比如new vue({el:'...'})
+      // 第一次渲染没有之前的vnode，用$el代替
+      // 第一次patch前$el是空的，有可能是预设的el，比如new vue({el:'...'}),
       // patch之后生成新的el，会替换原有的vm.$el（如果原来的el是在dom树中的，会获得原来的el的位置，patch中完成位置替换）,完成视图更新
       // 非根节点（系统自动挂载的节点）在patch后完成挂载，而根节点比如 new vue（）是主动挂载 
       // _parentElm会传递给该vm下的组件vnode在创建自己的vm，代代相传递归到叶子节点，在回来逐一删除
