@@ -122,6 +122,7 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+//执行data()方法获得data对象，并对data属性赋予响应式
 function initData (vm: Component) {
   let data = vm.$options.data
   data = vm._data = typeof data === 'function'
@@ -262,7 +263,7 @@ export function defineComputed (
       )
     }
   }
-  // 计算属性的get，set方法都会定义到属性的描述里面，因此我们使用计算属性，是一个属性（明明定义的是一个方法）的原因
+  // 计算属性的get，set方法都会定义到属性的描述里面，因此我们使用的计算属性，是一个属性（明明定义的是一个方法）的原因
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
@@ -272,7 +273,7 @@ function createComputedGetter (key) {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
       if (watcher.dirty) {
-        // 脏数据，重新求值，再一次使用数据的时候才重新求值，与别的类型的watch不一样。好处是利于性能
+        // 脏数据，重新求值，再一次使用数据的时候才重新求值，与别的类型的watch不一样。好处是延迟求值，利于性能
         watcher.evaluate()
       }
       if (Dep.target) {
@@ -349,7 +350,7 @@ function createWatcher (
   return vm.$watch(expOrFn, handler, options)
 }
 
-// vue原型上添加属性
+// vue原型上添加属性$data,$props,$set,$get,$watch
 export function stateMixin (Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
@@ -371,6 +372,7 @@ export function stateMixin (Vue: Class<Component>) {
       warn(`$props is readonly.`, this)
     }
   }
+  // 初始化$data和$props2个原型属性
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 

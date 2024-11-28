@@ -8,6 +8,7 @@ export default {
   },
   update (oldVnode: VNodeWithData, vnode: VNodeWithData) {
     if (oldVnode.data.ref !== vnode.data.ref) {
+      // 只有在模板设置的ref不同时，才更新
       registerRef(oldVnode, true)
       registerRef(vnode)
     }
@@ -17,11 +18,13 @@ export default {
   }
 }
 
-// registerRef 函数在第二个参数为 false 时，功能是注册 ref，即将父组件的 vm.$refs.ref 的值指向子组件真实DOM，其中 ref 的值为 VNode的 data.ref 属性；在第二个参数为 true 时，表示解除 vm.$refs.ref 对子组件真实DOM的引用
+//isRemoval 表示是添加ref还是删除ref
+// 通过当前vnode的data中持有的ref名称获得vnode上下文（也就是vm）的refs中持有的ref对比来完成操作
 export function registerRef (vnode: VNodeWithData, isRemoval: ?boolean) {
   const key = vnode.data.ref
   if (!isDef(key)) return
 
+  // vnode的上下文就是vnode所在的组件vm
   const vm = vnode.context
   // ref写在组件上指向的是vm，写在普通元素上指向dom
   const ref = vnode.componentInstance || vnode.elm

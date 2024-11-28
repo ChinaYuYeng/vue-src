@@ -51,7 +51,7 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
-// 添加生命周期操作函数
+// 给原型添加生命周期操作函数_update,$forceUpdate,$destroy
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
@@ -95,6 +95,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     activeInstance = prevActiveInstance
     // update __vue__ reference
     if (prevEl) {
+      // 解除之前的dom和vm的引用关系
       prevEl.__vue__ = null
     }
     if (vm.$el) {

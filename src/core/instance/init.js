@@ -58,7 +58,7 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
-    // 以下都是给vm设置或者初始化属性，差不多就是拿opations做文章
+    // 以下通过$opations中的值给vm设置或者初始化属性
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
@@ -85,6 +85,7 @@ export function initMixin (Vue: Class<Component>) {
 
 //直接合并组件的选项，从父vnode的componentOptions里获取选项数据
 // 这种情况一般是组件节点在创建vm的时候，对于vm选项合并的优化，因为合并太费时间。而组件节点创建vm是一个统一的过程，不需要特殊处理
+// 这种基于原型链的方式合并选项更高效
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.

@@ -100,6 +100,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
         handleError(e, ctx, 'nextTick')
       }
     } else if (_resolve) {
+      // 执行promise的方式
       _resolve(ctx)
     }
   })

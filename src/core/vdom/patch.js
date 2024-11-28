@@ -157,7 +157,7 @@ export function createPatchFunction (backend) {
     }
 
     const data = vnode.data
-    // 如果vnode是组件节点那么只有child（这个引用的是vm），vm有且只有一个根节点_vnode，如果vnode不是组件节点，那么他的节点都在children中
+    // 如果vnode是组件节点那么只有child（这个引用的是vm），vm有且只有一个根节点_vnode，这里vnode不是组件节点，那么他的节点都在children中
     const children = vnode.children
     const tag = vnode.tag
     // 标签节点的处理
@@ -184,7 +184,7 @@ export function createPatchFunction (backend) {
       setScope(vnode)
 
       /* istanbul ignore if */
-      if (__WEEX__) {
+      if (__WEEX__) { 
         // in Weex, the default insertion order is parent-first.
         // List items can be optimized to use children-first insertion
         // with append="tree".
@@ -590,21 +590,23 @@ export function createPatchFunction (backend) {
     if (isDef(data) && isPatchable(vnode)) {
       // 更新当前节点（组件vonde或者普通vnode）对应的dom属性
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
-
+      
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
     // patch子节点
     if (isUndef(vnode.text)) {
       // 对比新旧子节点
       if (isDef(oldCh) && isDef(ch)) {
-        // 都有子节点
+        // 使用diff算法判断节点，进行节点增删改操作
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
       } else if (isDef(ch)) {
-        // 只有新有子节点
         if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
+        // 只有新子节点
+        // 批量调用createElm
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
       } else if (isDef(oldCh)) {
         // 只有旧有子节点
+        // 批量销毁节点
         removeVnodes(elm, oldCh, 0, oldCh.length - 1)
       } else if (isDef(oldVnode.text)) {
         nodeOps.setTextContent(elm, '')
@@ -762,6 +764,7 @@ export function createPatchFunction (backend) {
    * 
    * */ 
 /**
+ * data数据项解释
  * {
   // 和`v-bind:class`一样的 API
   // 接收一个字符串、对象或字符串和对象组成的数组
@@ -799,8 +802,7 @@ export function createPatchFunction (backend) {
   on: {
     click: this.clickHandler
   },
-  // 仅用于组件，用于监听原生事件，而不是组件内部使用
-  // `vm.$emit` 触发的事件。
+  // 仅用于组件，用于监听原生事件，而不是组件内部使用`vm.$emit` 触发的事件。
   // 组件vnode处理
   nativeOn: {
     click: this.nativeClickHandler
@@ -832,6 +834,13 @@ export function createPatchFunction (backend) {
   // 那么 `$refs.myRef` 会变成一个数组。
   refInFor: true
 }
+ */
+
+/**
+ * patch主要有三种情况
+ * 1、新增节点没有旧节点，使用createElm创建dom（如果是组件，那么重复1），遍历子节点递归调用createElm。
+ * 2、删除旧节点没有新节点，使用invokeDestroyHook销毁旧节点，遍历子节点递归调用invokeDestroyHook
+ * 3、更新旧节点到新节点，使用patchVnode更新vm再更新dom，通过diff算法只有新旧节点满足条件递归调用patchVnode
  */
 
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {

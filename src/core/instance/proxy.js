@@ -62,6 +62,7 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
+  // 做了一层访问控制，直接用vm也没什么问题，通常在dev下使用，便于获得调试信息
   initProxy = function initProxy (vm) {
     if (hasProxy) {
       // determine which proxy handler to use

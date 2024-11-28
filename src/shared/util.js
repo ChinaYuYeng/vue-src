@@ -191,7 +191,7 @@ export const capitalize = cached((str: string): string => {
  * Hyphenate a camelCase string.
  * 驼峰转横杠
  */
-const hyphenateRE = /\B([A-Z])/g //\B是非字符串的头尾
+const hyphenateRE = /\B([A-Z])/g //\B是字母之间的间隙
 export const hyphenate = cached((str: string): string => {
   return str.replace(hyphenateRE, '-$1').toLowerCase()
 })
@@ -335,7 +335,7 @@ export function looseEqual (a: any, b: any): boolean {
   }
 }
 
-//更加宽泛的搜索方法，除了地址一样，也包括属性（元素）值一样
+//更加宽泛的搜索方法，除了内存地址一样，也包括属性（元素）值一样
 export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
   for (let i = 0; i < arr.length; i++) {
     if (looseEqual(arr[i], val)) return i

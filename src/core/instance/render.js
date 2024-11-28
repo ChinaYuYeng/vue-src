@@ -53,9 +53,10 @@ export function initRender (vm: Component) {
   }
 }
 
+// 给vue原型添加渲染相关的方法
 export function renderMixin (Vue: Class<Component>) {
   // install runtime convenience helpers
-  // 渲染是用到的各种工具方法
+  // 渲染时用到的各种工具方法
   installRenderHelpers(Vue.prototype)
 
   Vue.prototype.$nextTick = function (fn: Function) {

@@ -32,6 +32,7 @@ export type Config = {
   _lifecycleHooks: Array<string>;
 };
 
+// 全局配置文件
 export default ({
   /**
    * Option merge strategies (used in core/util/options)

@@ -117,7 +117,7 @@ export function _createElement (
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
       // component选项下的组件，创建组件vnode
-      // 从components中获得的不是构造方法，还是选项对象
+      // 从components中获得的不是构造方法，还是选项对象，方法内部会把ctor对象转成构造方法
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements

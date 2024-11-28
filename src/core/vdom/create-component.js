@@ -53,7 +53,6 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
-      // 这个child不知道是什么时候赋值给vnode的
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         // 这个vnode是vm的parentvnode,也是_vnode的parent
         vnode,
@@ -69,7 +68,7 @@ const componentVNodeHooks = {
     }
   },
 
-  // 更新组件节点内部对应的vm
+  // 更新组件节点内部对应的vm,只要在sameVnode的情况才会使用这种方式更新vm，同时不会触发vm的生命周期。vue-hot-reload 某些情况下会使sameVnode不满足，进而重建vm
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     // 这个component vnode对应的vm。也等同于vnode下的child属性
@@ -140,7 +139,7 @@ export function createComponent (
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
     // ctor是object，不是构造方法，这里的extend就是vue.extend(obj)
-    // 生成一个组件构造方法
+    // 把组件选项对象转换成构造方法
     Ctor = baseCtor.extend(Ctor)
   }
 

@@ -69,6 +69,7 @@ type ModelParseResult = {
   key: string | null
 }
 
+// 解析v-model中的表达式
 export function parseModel (val: string): ModelParseResult {
   // Fix https://github.com/vuejs/vue/pull/7730
   // allow v-model="obj.val " (trailing whitespace)
@@ -93,6 +94,7 @@ export function parseModel (val: string): ModelParseResult {
   str = val
   index = expressionPos = expressionEndPos = 0
 
+  // 这里开始解析[]，0x5B是[ ，0x5D是]
   while (!eof()) {
     chr = next()
     /* istanbul ignore if */

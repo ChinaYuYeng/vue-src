@@ -19,7 +19,7 @@ function updateDirectives (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   }
 }
 
-// 指令执行，在patch的过程中执行
+// 自定义指令更新
 function _update (oldVnode, vnode) {
   const isCreate = oldVnode === emptyNode
   const isDestroy = vnode === emptyNode
@@ -47,7 +47,7 @@ function _update (oldVnode, vnode) {
       // 存在指令，在vnode更新时触发指令更新钩子
       callHook(dir, 'update', vnode, oldVnode)
       if (dir.def && dir.def.componentUpdated) {
-        // 指令所在组件的 VNode 及其子 VNode 全部更新后调用，先存着
+        // 延迟到指令所在组件的 VNode 及其子 VNode 全部更新后调用，先存着
         dirsWithPostpatch.push(dir)
       }
     }
@@ -60,7 +60,7 @@ function _update (oldVnode, vnode) {
       }
     }
     if (isCreate) {
-      // 创建阶段合并钩子，等待被执行
+      // 创建阶段合并钩子，等待被执行，合并到vnode.data.hook中
       mergeVNodeHook(vnode, 'insert', callInsert)
     } else {
       // 旧节点存在，直接调用新节点的插入钩子

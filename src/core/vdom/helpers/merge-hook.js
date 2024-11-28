@@ -5,6 +5,7 @@ import { createFnInvoker } from './update-listeners'
 import { remove, isDef, isUndef, isTrue } from 'shared/util'
 
 // 合并vnode生命周期钩子
+// 合并采用
 export function mergeVNodeHook (def: Object, hookKey: string, hook: Function) {
   if (def instanceof VNode) {
     def = def.data.hook || (def.data.hook = {})
@@ -21,6 +22,7 @@ export function mergeVNodeHook (def: Object, hookKey: string, hook: Function) {
 
   if (isUndef(oldHook)) {
     // no existing hook
+    // 首次合并创建invoker，并把钩子函数统一放入invoker.fns中
     invoker = createFnInvoker([wrappedHook])
   } else {
     /* istanbul ignore if */

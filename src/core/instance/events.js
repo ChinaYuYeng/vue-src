@@ -51,13 +51,14 @@ export function updateComponentListeners (
   target = undefined
 }
 
-// 增加事件相关的操作函数
+// 给vue原型添加事件相关操作方法$on,$once,$off,$emit
 export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
   // 注册事件
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
     if (Array.isArray(event)) {
+      // 多个事件名，注册同一个事件句柄
       for (let i = 0, l = event.length; i < l; i++) {
         this.$on(event[i], fn)
       }
@@ -65,7 +66,7 @@ export function eventsMixin (Vue: Class<Component>) {
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
-      // 用一个标记来代替对象哈希查找（就是通过vm._events[event]查找），2
+      // 用一个标记来代替对象哈希查找（就是通过vm._events[event]查找）特殊的
       // 使用$on或者$once等在运行时注册的生命周期钩子函数
       if (hookRE.test(event)) {
         vm._hasHookEvent = true
@@ -79,6 +80,7 @@ export function eventsMixin (Vue: Class<Component>) {
     const vm: Component = this
     function on () {
       vm.$off(event, on)
+      // 利用闭包执行1次fn
       fn.apply(vm, arguments)
     }
     on.fn = fn
@@ -89,7 +91,7 @@ export function eventsMixin (Vue: Class<Component>) {
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
     // all
-    // 移除所有
+    // 不传参数移除所有
     if (!arguments.length) {
       vm._events = Object.create(null)
       return vm

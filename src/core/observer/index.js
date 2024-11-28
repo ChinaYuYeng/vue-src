@@ -34,6 +34,7 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * 创建观察者，并对赋予对象响应式属性，对数组改造原型链获得响应式的能力
  */
 export class Observer {
   value: any;
